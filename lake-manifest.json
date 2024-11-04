@@ -91,5 +91,5 @@
    "inputRev": null,
    "inherited": false,
    "configFile": "lakefile.lean"}],
- "name": "Project",
+ "name": "Frobenius",
  "lakeDir": ".lake"}
