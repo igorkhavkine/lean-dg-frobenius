@@ -1,5 +1,7 @@
 ## macOS
 .DS_Store
+## Python virtual environment
+.env/*
 ## Lake
 .lake/*
 .cache/*
