@@ -14,5 +14,13 @@
     // Trim final newlines at the end of files
     "files.trimFinalNewlines": true,
     // Remove any trailing whitespace on save
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "terminal.integrated.defaultProfile.linux": "bash-venv",
+    "terminal.integrated.profiles.linux": {
+        "bash-venv": {
+            "path": "bash",
+            "icon": "terminal-bash",
+            "args": ["--init-file", ".envrc"]
+        }
+    }
 }
