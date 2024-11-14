@@ -9,3 +9,60 @@
 \chapter{Introduction}
 
 This project aims to formalize the Frobenius Theorem from differential geometry in Lean 4.
+
+\chapter{Frobenius Theorem}
+
+Consider a smooth manifold $M$ of dimension $m$. For local questions we can take
+$M=\mathbb{R}^m$, which could correspond to a chart around some point $x\in M$.
+All functions, vector fields and differential forms are presumed to be smooth ($C^\infty$).
+
+\begin{definition}[involutivity] \label{def:invol}
+Let $L_i = \sum_{k=1}^m f_i^k(x) \partial/\partial x^j$, $i=1,\ldots,r\le m$, be
+first order differential operators, such that the vector fields $v_i(x) =
+(f_i^k(x))_{k=1}^m$ are linearly independent. They are said to be in
+\emph{involution} when there exist functions $c^k_{ij}(x)$ such that
+\[
+  L_i L_j - L_j L_i = \sum_{k=1}^r c^k_{ij}(x) L_k .
+\]
+\end{definition}
+
+\begin{theorem}[local Frobenius] \label{thm:frob-loc}
+\uses{def:invol}
+If the first order differential operators $L_i$, $i=1,\ldots,r \le m$, are in
+involution, then there exist $m-r$ smooth functions $u^k(x)$ that satisfy the
+equations $L_i u^k(x) = 0$ and such that their gradients $\nabla u^k(x)$,
+$k=1,\ldots,m-r$ are linearly independent.
+\end{theorem}
+
+\begin{definition}[differential forms] \label{def:forms}
+\notready
+\end{definition}
+
+\begin{definition}[differential ideal] \label{def:diff-ideal}
+\uses{def:forms}
+\notready
+\end{definition}
+
+\begin{theorem}[differential form Frobenius] \label{thm:frob-forms}
+\uses{def:diff-ideal, thm:frob-loc}
+If $\alpha_i$, $i=1,\ldots r\le m-r$ are 1-forms on $M$ that generate a closed
+differential ideal. Then there exist smooth scalar functions $u_i(x)$,
+$i=1,\ldots,m-r$ such that the exact 1-forms $du_i$, $i=1,\ldots,m-r$ generate
+the same differential ideal.
+\end{theorem}
+
+\begin{definition}[vector field distribution] \label{def:vec-dist}
+\notready
+\end{definition}
+
+\begin{definition}[involutive distribution] \label{def:inv-distr}
+\uses{def:vec-dist}
+\notready
+\end{definition}
+
+\begin{theorem}[vector field Frobenius] \label{thm:frob-vec}
+\uses{def:inv-distr, thm:frob-loc}
+Let $\mathcal{V} \subseteq TM$ be an involutive tangent space distribution of
+rank $r\le m$. Then there exists a foliation of $M$ with $r$-dimensional leaves
+that are everywhere tangent to the distribution $\mathcal{V}$.
+\end{theorem}
