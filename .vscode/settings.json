@@ -22,5 +22,13 @@
             "icon": "terminal-bash",
             "args": ["--init-file", ".envrc"]
         }
+    },
+    "terminal.integrated.defaultProfile.osx": "bash-venv",
+    "terminal.integrated.profiles.osx": {
+        "bash-venv": {
+            "path": "bash",
+            "icon": "terminal-bash",
+            "args": ["--init-file", ".envrc-osx"]
+        }
     }
 }
