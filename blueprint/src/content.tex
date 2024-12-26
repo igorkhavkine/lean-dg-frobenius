@@ -45,24 +45,59 @@ $k=1,\ldots,m-r$ are linearly independent.
 
 \begin{theorem}[differential form Frobenius] \label{thm:frob-forms}
 \uses{def:diff-ideal, thm:frob-loc}
-If $\alpha_i$, $i=1,\ldots r\le m-r$ are 1-forms on $M$ that generate a closed
+If $\alpha_i$, $i=1,\ldots k\le m-k$ are 1-forms on $M$ that generate a closed
 differential ideal. Then there exist smooth scalar functions $u_i(x)$,
-$i=1,\ldots,m-r$ such that the exact 1-forms $du_i$, $i=1,\ldots,m-r$ generate
+$i=1,\ldots,m-k$ such that the exact 1-forms $du_i$, $i=1,\ldots,m-k$ generate
 the same differential ideal.
 \end{theorem}
 
-\begin{definition}[vector field distribution] \label{def:vec-dist}
-\notready
+\begin{definition}[tangent distribution] \label{def:vec-dist}
+A \emph{tangent distribution} on a manifold $M$ is a vector sub-bundle
+$\mathcal{D}\hookrightarrow TM$ (equivalently, an embedding of vector bundles).
+\end{definition}
+
+\begin{definition}[Lie bracket] \label{def:lie}
+\uses{def:invol}
+On a manifold $M$, given two vector fields $u$, $v$ (sections of the tangent
+bundle $TM$), their \emph{Lie bracket} $w = [u,v]$ is the vector field that
+satisfies the identity $w(f) = u(v(f)) - v(u(f))$, where vector fields act as
+first order differential operators on a smooth function $f$. In coordinate form,
+if $u = u^i\partial_i$, $v = v^i\partial_i$, $w = w^i\partial_i$, then $w^j =
+u^i \partial_i v^j - v^i \partial_i u^i$. The vector fields $u$, $v$
+\emph{commute} (or are \emph{in involution} in the sense of
+Def.~\ref{def:invol}) if $[u,v] = 0$.
 \end{definition}
 
 \begin{definition}[involutive distribution] \label{def:inv-distr}
+\uses{def:lie,def:vec-dist}
+A tangent distribution $\mathcal{D} \hookrightarrow TM$ is \emph{involutive} if,
+for any two vector field sections $u$, $v$ of $\mathcal{D}$, the Lie bracket
+$[u,v]$ is also a section of $\mathcal{D}$.
+\end{definition}
+
+\begin{definition}[integral submanifold] \label{def:int-subman}
 \uses{def:vec-dist}
+Given a manifold $M$ with a tangent distribution $\mathcal{D} \hookrightarrow
+TM$ of rank $r$ (as a vector bundle), a submanifold $\iota\colon N
+\hookrightarrow M$ passing through $x_0 \in M$ is called an \emph{integral
+submanifold} of the distribution $\mathcal{D}$ if it is everywhere tangent to
+$\mathcal{D}$, $T\iota (TN) \subseteq \mathcal{D}$, where naturally $\dim N \le
+r$. In the case $\dim N = r$, the integral submanifold is called \emph{maximal
+(in dimension)}.
+\end{definition}
+
+\begin{definition}[foliation] \label{def:foliation}
 \notready
 \end{definition}
 
 \begin{theorem}[vector field Frobenius] \label{thm:frob-vec}
-\uses{def:inv-distr, thm:frob-loc}
-Let $\mathcal{V} \subseteq TM$ be an involutive tangent space distribution of
-rank $r\le m$. Then there exists a foliation of $M$ with $r$-dimensional leaves
-that are everywhere tangent to the distribution $\mathcal{V}$.
+\uses{def:inv-distr, def:int-subman, def:foliation, thm:frob-loc}
+Let $\mathcal{D} \subseteq TM$ be an involutive tangent space distribution of
+rank $r\le m = \dim M$. Then, for every $x\in M$, there exists a maximal
+integral submanifold $\iota\colon \mathbb{R}^n \hookrightarrow M$ of
+$\mathcal{D}$ such that $\iota(0) = x$. Moreover, these integral submanifolds
+collect into a $r$-dimensional foliation of $M$ whose leaves are everywhere
+tangent to the distribution $\mathcal{D}$.  Then there exists a foliation of $M$
+with $r$-dimensional leaves that are everywhere tangent to the distribution
+$\mathcal{D}$.
 \end{theorem}
