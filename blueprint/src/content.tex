@@ -27,12 +27,86 @@ first order differential operators, such that the vector fields $v_i(x) =
 \end{definition}
 
 \begin{theorem}[local Frobenius] \label{thm:frob-loc}
-\uses{def:invol}
+\uses{def:invol,lem:op-frame,lem:eq-frame-equiv,lem:loc-init-split,lem:eq-loc-inv,lem:eq-radial,lem:eq-radial-exists}
 If the first order differential operators $L_i$, $i=1,\ldots,r \le m$, are in
 involution, then there exist $m-r$ smooth functions $u^k(x)$ that satisfy the
 equations $L_i u^k(x) = 0$ and such that their gradients $\nabla u^k(x)$,
 $k=1,\ldots,m-r$ are linearly independent.
 \end{theorem}
+
+\begin{lemma} \label{lem:op-frame}
+If the $L_i$ as in Def.~\ref{def:invol} are in infolution, then the $L'_{i'} =
+\sum_{i=1}^r \alpha_{i'}^i L_i$, $i'=1,\ldots,r$, with smooth pointwise invertible
+$\alpha_{i'}^i$, are also in involution.
+\end{lemma}
+\begin{proof}
+\begin{align*}
+  L'_{i'} L'_{j'} - L'_{j'} L'_{i'}
+  &= \alpha_{i'}^i \alpha_{j'}^j (L_i L_j - L_j L_i)
+    + \alpha_{i'}^i L_i(\alpha_{j'}^j) L_j
+    - \alpha_{j'}^j L_j(\alpha_{i'}^i) L_i
+  \\
+  &= \alpha_{i'}^i \alpha_{j'}^j \left(c_{ij}^k
+    + (\alpha^{-1})_j^{j'} L_i(\alpha_{j'}^j) \delta_j^k
+    - (\alpha^{-1})_i^{i'} L_j(\alpha_{i'}^i) \delta_i^k \right) L_k
+  \\
+  &= \alpha_{i'}^i \alpha_{j'}^j \left(c_{ij}^k
+    + (\alpha^{-1})_j^{j'} L_i(\alpha_{j'}^j) \delta_j^k
+    - (\alpha^{-1})_i^{i'} L_j(\alpha_{i'}^i) \delta_i^k \right) (\alpha^{-1})_k^{k'} L'_{k'}
+\end{align*}
+\end{proof}
+
+\begin{lemma} \label{lem:eq-frame-equiv}
+For the operators $L'_{i'}$ as in Lem.~\ref{lem:op-frame}, a smooth function $u$
+solves $L_i u = 0$, $i=1,\ldots,r$, iff it solves $L'_{i'} u = 0$,
+$i'=1,\ldots,r$.
+\end{lemma}
+
+\begin{lemma} \label{lem:loc-init-split}
+\uses{def:invol,lem:op-frame}
+For the operators $L_i$ from Def.~\ref{def:invol}, given $x \in M$, there exists
+an open neighborhood $U\ni x$ such that (a) there an exists invertible
+$\alpha_{i'}^i$ as in Lem.~\ref{lem:op-frame}, (b) there exists a split local
+chart $(y,z)\colon M \supset U \cong \mathbb{R}^r \times \mathbb{R}^{m-r}$, with
+(c) $(y(x),z(x)) = (0,0)$ and (d)
+\[
+  L'_{i'} = \frac{\partial}{\partial y^{i'}} + \sum_{j=1}^{m-r} f_{i'}^j(y,z) \frac{\partial}{\partial z^j} .
+\]
+[check consequence of involutivity on the $f_{i'}^j(y,z)$.] \notready
+\end{lemma}
+
+\begin{lemma} \label{lem:eq-loc-inv}
+\uses{lem:loc-init-split}
+Consider the operators $L'_{i'}$ and the split neighborhood $U\ni x$ as in
+Lem.~\ref{lem:loc-init-split}. Let $Z^j(y,z)$ satisfy (a) $Z^j(0,z) = z^j$ and
+(b) solve the equations
+\[
+  \frac{\partial}{\partial y^{i'}} Z^j(y,z) = f_{i'}^j(y, Z^j(y,z)) .
+\]
+Define $\bar{Z}^k(y,z)$ by the inversion identity $\bar{Z}^k(y, Z(y, z)) = z^k$,
+for all $z$ on a sufficiently small neighborhood of $z=0$, and for all $y$ on a
+sufficiently small neighborhood of $y=0$. Then
+\[
+  L'_{i'} \bar{Z}(y,z) = 0, \quad i'=1,\ldots,r .
+\]
+\end{lemma}
+
+\begin{lemma} \label{lem:eq-radial}
+\uses{lem:eq-loc-inv}
+Let $Z^j(y,z)$ be as in Lem.~\ref{lem:eq-loc-inv}. Then, $\zeta^j(t,y,z) =
+Z^j(ty,z)$ satisfies $\zeta^j(0,y,z) = z^j$ and the equations
+\[
+  \frac{\partial}{\partial t} \zeta^j(t,y,z) = y^{i'} f_{i'}^j(ty,\zeta(t,y,z)) .
+\]
+Conversely, if $\zeta^j(t,y,z)$ satisfies the equation above, then $Z^j(y,z) =
+\zeta^j(1,y,z)$, defined on a sufficiently small neighborhood of $y=0$,
+satisfies the conditions in the hypotheses of Lem.~\ref{lem:eq-loc-inv}.
+\end{lemma}
+
+\begin{lemma} \label{lem:eq-radial-exists}
+The ODE initial value problem for $\zeta^j(t,y,z)$ in Lem.~\ref{lem:eq-radial}
+(a) has a solution that is jointly smooth in $(t,y,z)$, which is (b) unique.
+\end{lemma}
 
 \begin{definition}[differential forms] \label{def:forms}
 \notready
@@ -97,7 +171,5 @@ rank $r\le m = \dim M$. Then, for every $x\in M$, there exists a maximal
 integral submanifold $\iota\colon \mathbb{R}^n \hookrightarrow M$ of
 $\mathcal{D}$ such that $\iota(0) = x$. Moreover, these integral submanifolds
 collect into a $r$-dimensional foliation of $M$ whose leaves are everywhere
-tangent to the distribution $\mathcal{D}$.  Then there exists a foliation of $M$
-with $r$-dimensional leaves that are everywhere tangent to the distribution
-$\mathcal{D}$.
+tangent to the distribution $\mathcal{D}$.
 \end{theorem}
