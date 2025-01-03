@@ -13,7 +13,7 @@ This project aims to really formalize the Frobenius Theorem from differential ge
 \chapter{Frobenius Theorem}
 
 Consider a smooth manifold $M$ of dimension $m$. For local questions we can take
-$M=\mathbb{R}^m$, which could correspond to a chart around some point $x\in M$.
+$M=\mathbb{R}^m$, which could correspond to a chart around some point $x_0\in M$.
 All functions, vector fields and differential forms are presumed to be smooth ($C^\infty$).
 
 \begin{definition}[involutivity] \label{def:invol}
@@ -40,6 +40,7 @@ If the $L_i$ as in Def.~\ref{def:invol} are in infolution, then the $L'_{i'} =
 $\alpha_{i'}^i$, are also in involution.
 \end{lemma}
 \begin{proof}
+It is sufficient to compute the commutator
 \begin{align*}
   L'_{i'} L'_{j'} - L'_{j'} L'_{i'}
   &= \alpha_{i'}^i \alpha_{j'}^j (L_i L_j - L_j L_i)
@@ -53,7 +54,10 @@ $\alpha_{i'}^i$, are also in involution.
   &= \alpha_{i'}^i \alpha_{j'}^j \left(c_{ij}^k
     + (\alpha^{-1})_j^{j'} L_i(\alpha_{j'}^j) \delta_j^k
     - (\alpha^{-1})_i^{i'} L_j(\alpha_{i'}^i) \delta_i^k \right) (\alpha^{-1})_k^{k'} L'_{k'}
+  \\
+  &= \sum_{k'=1}^r c'^{k'}_{i'j'} L'_{k'} ,
 \end{align*}
+where the formula for $c'^{k'}_{i'j'}$ can be read off from the last equality.
 \end{proof}
 
 \begin{lemma} \label{lem:eq-frame-equiv}
@@ -61,35 +65,114 @@ For the operators $L'_{i'}$ as in Lem.~\ref{lem:op-frame}, a smooth function $u$
 solves $L_i u = 0$, $i=1,\ldots,r$, iff it solves $L'_{i'} u = 0$,
 $i'=1,\ldots,r$.
 \end{lemma}
+\begin{proof}
+The computation
+\[
+  L'_{i'} u = \sum_{i=1}^r \alpha_{i'}^i (L_i u)
+\]
+shows that $L_i u = 0$, $i=1,\ldots,r$, implies $L'_{i'} u = 0$ for any $i'=1,\ldots,r$.
+\end{proof}
 
 \begin{lemma} \label{lem:loc-init-split}
 \uses{def:invol,lem:op-frame}
-For the operators $L_i$ from Def.~\ref{def:invol}, given $x \in M$, there exists
-an open neighborhood $U\ni x$ such that (a) there an exists invertible
+For the operators $L_i$ from Def.~\ref{def:invol}, given $x_0 \in M$, there exists
+an open coordinate neighborhood $U\ni x_0$ such that (a) there an exists invertible
 $\alpha_{i'}^i$ as in Lem.~\ref{lem:op-frame}, (b) there exists a split local
-chart $(y,z)\colon M \supset U \cong \mathbb{R}^r \times \mathbb{R}^{m-r}$, with
-(c) $(y(x),z(x)) = (0,0)$ and (d)
+chart $(y,z)\colon M \supset U' \cong \mathbb{R}^r \times \mathbb{R}^{m-r}$, with
+(c) $(y(x_0),z(x_0)) = (0,0)$, (d)
 \[
   L'_{i'} = \frac{\partial}{\partial y^{i'}} + \sum_{j=1}^{m-r} f_{i'}^j(y,z) \frac{\partial}{\partial z^j} .
 \]
-[check consequence of involutivity on the $f_{i'}^j(y,z)$.] \notready
+and (e) $[L'_{i'}, L'_{j'}] = 0$, for $i',j'=1,\ldots,r$.
 \end{lemma}
+\begin{proof}
+Start with the coordinates $(x^1,\ldots,x^m)$ on $U$ and consider the coordinate
+components $L_i = a_i^j(x) \frac{\partial}{\partial x^j}$. The rank of the
+matrix $a_i^j(x_0)$ must be $r$, otherwise the $L_i$ vectors do not constitute a
+frame for the distribution $\mathcal{D}$. Hence, there exists a subset $I
+\subseteq \{1,\ldots,r\}$ such that the matrix minor $(a_i^j)_{i\in I, 1\le j\le
+m}$ is non-singular. Define the coordinates $y^{i'} = x^{I(i')} -
+(x_0)^{I(i')}$, $i'=1,\ldots,r$, and $z^{j} = x^{I^c(j)} - (x_0)^{I^c(j)}$,
+$j=1,\ldots,m-r$, where $I(i')$ and $I^c(j)$ is some ordering of the sets $I$
+and its complement $I^c$. Then, restrict to a sub-neighborhood $U'' \subseteq U$
+that is split with respect to the $(y,z)$ coordinates.
+
+The new coordinate components are
+\[
+  L_{i} = \sum_{i'=1}^r a_{i}^{I(i')}(x(y,z)) \frac{\partial}{\partial y^{i'}}
+    + \sum_{j=1}^{m-r} a_{i}^{I^c(j)}(x(y,z)) \frac{\partial}{\partial z^j} .
+\]
+Let $\beta_{i}^{i'}(y,z) = a_{i}^{I(i')}(x(y,z))$ and $\gamma_{i}^{j}(y,z) =
+a_{i}^{I^c(j)}(x(y,z))$, so that by construction $\beta_{i}^{i'}(0,0)$ is
+non-singular. Since $\beta \colon U'' \to \operatorname{Mat}(r,r)$ is smooth
+(hence a fortiriori continuous) and the subset of non-singular matrices in
+$\operatorname{Mat}(r,r)$ is open, there is a possibly smaller split
+sub-neighborhood $U' \subseteq U''$ on which $\beta$ is everywhere non-singular.
+So, defining $\alpha_{i'}^j(y,z) = (\beta_{i}^{i'}(y,z))^{-1}$ on $U''$
+satisfies the desired conclusions (a), (b), (c) and (d), where $f_{i'}^j(y,z) =
+\alpha_{i'}^i(y,z) \gamma_{i}^j(y,z)$.
+
+To prove (e), consider the computation
+\begin{align*}
+  [L'_{i'}, L'_{j'}]
+  &= L'_{i'} L'_{j'} - L'_{j'} L'_{i'}
+  \\
+  = \sum_{k'=1}^r c'^{k'}_{i'j'} L'_{k'}
+  &= \sum_{j=1}^{m-r} \left(\frac{\partial}{\partial y^{i'}} f_{j'}^j - \frac{\partial}{\partial y^{j'}} f_{i'}^j\right)\frac{\partial}{\partial z^j}
+    + \sum_{k=1}^{m-r} \sum_{j=1}^{m-r} \left(f_{i'}^j \frac{\partial}{\partial z^j} f_{j'}^k - f_{j'}^j \frac{\partial}{\partial z^j} f_{i'}^k\right) \frac{\partial}{\partial z^k} .
+\end{align*}
+Hence, for each fixed $i',j'$, the $\frac{\partial}{\partial y^{k'}}$ components
+of the right-hand side vanish, while those of the left-hand side equal
+$\sum_{k'=1}^{m-r} c'^{k'}_{i'j'} \frac{\partial}{\partial y^{k'}}$, meaning
+that all components of $c'^{k'}_{i'j'}$ must vanish.
+\end{proof}
 
 \begin{lemma} \label{lem:eq-loc-inv}
 \uses{lem:loc-init-split}
-Consider the operators $L'_{i'}$ and the split neighborhood $U\ni x$ as in
-Lem.~\ref{lem:loc-init-split}. Let $Z^j(y,z)$ satisfy (a) $Z^j(0,z) = z^j$ and
-(b) solve the equations
+Consider the operators $L'_{i'}$ and the split neighborhood $U\ni x_0$ as in
+Lem.~\ref{lem:loc-init-split}. Let $Z^k(y,z)$ and $\bar{Z}^k(y,z)$ satisfy the
+inversion identity $\bar{Z}^k(y, Z(y, z)) = z^k$, for all $z$ on a sufficiently
+small neighborhood of $z=0$, and for all $y$ on a sufficiently small
+neighborhood of $y=0$. Suppose that $Z^j(y,z)$ satisfies (a) $Z^j(0,z) = z^j$
+and (b)
 \[
-  \frac{\partial}{\partial y^{i'}} Z^j(y,z) = f_{i'}^j(y, Z^j(y,z)) .
+  \frac{\partial Z^j}{\partial y^{i'}}(y,z) = f_{i'}^j(y, Z^j(y,z)) .
 \]
-Define $\bar{Z}^k(y,z)$ by the inversion identity $\bar{Z}^k(y, Z(y, z)) = z^k$,
-for all $z$ on a sufficiently small neighborhood of $z=0$, and for all $y$ on a
-sufficiently small neighborhood of $y=0$. Then
+Then
 \[
-  L'_{i'} \bar{Z}(y,z) = 0, \quad i'=1,\ldots,r .
+  L'_{i'} \bar{Z}(y,z) = 0, \quad i'=1,\ldots,r ,
 \]
+and vice versa.
 \end{lemma}
+\begin{proof}
+Start by differentiating the inversion identity:
+\begin{align*}
+  0 = \frac{\partial}{\partial y^{i'}} z^k
+  &= \frac{\partial}{\partial y^{i'}} \bar{Z}^k(y, Z(y, z))
+  \\
+  &= \left. \frac{\partial \bar{Z}^k}{\partial y^{i'}}(y, z') \right|_{z'=Z(y,z)}
+    + \frac{\partial Z^j}{\partial y^{i'}}(y,z)
+      \left. \frac{\partial \bar{Z}^k}{\partial z'^j}(y,z') \right|_{z'=Z(y,z)}
+  \\
+  &= \left. \left(\frac{\partial \bar{Z}^k}{\partial y^{i'}}(y, z')
+      + f_{i'}^j(y,z') \frac{\partial \bar{Z}^k}{\partial z'^j}(y,z')\right) \right|_{z'=Z(y,z)}
+    \\ &\quad {}
+    + \left. \left(\frac{\partial Z^j}{\partial y^{i'}}(y,z) - f_{i'}^j(y,z')\right)
+      \frac{\partial \bar{Z}^k}{\partial z'^j}(y,z') \right|_{z'=Z(y,z)}
+    .
+\end{align*}
+Recall that being a diffeomorphism, the Jacobian $\frac{\partial Z^k}{\partial
+z'^j}(y,z')$ non-singular on the sufficiently small split domain. Hence,
+rearranging the last equality, we find
+\[
+  \left. \left(\frac{\partial \bar{Z}^k}{\partial z'^j}(y,z')\right)^{-1}
+    \left(\frac{\partial \bar{Z}^k}{\partial y^{i'}}(y, z')
+      + f_{i'}^j(y,z') \frac{\partial \bar{Z}^k}{\partial z'^j}(y,z')\right) \right|_{z'=Z(y,z)}
+  = -\left(\frac{\partial Z^j}{\partial y^{i'}}(y,z) - f_{i'}^j(y,Z(y,z))\right) .
+\]
+Hence, if one side of the equality vanishes, then so does the other, which
+proves the desired equivalence.
+\end{proof}
 
 \begin{lemma} \label{lem:eq-radial}
 \uses{lem:eq-loc-inv}
@@ -168,9 +251,9 @@ r$. In the case $\dim N = r$, the integral submanifold is called \emph{maximal
 \begin{theorem}[vector field Frobenius] \label{thm:frob-vec}
 \uses{def:inv-distr, def:int-subman, def:foliation, thm:frob-loc}
 Let $\mathcal{D} \subseteq TM$ be an involutive tangent space distribution of
-rank $r\le m = \dim M$. Then, for every $x\in M$, there exists a maximal
+rank $r\le m = \dim M$. Then, for every $x_0\in M$, there exists a maximal
 integral submanifold $\iota\colon \mathbb{R}^n \hookrightarrow M$ of
-$\mathcal{D}$ such that $\iota(0) = x$. Moreover, these integral submanifolds
+$\mathcal{D}$ such that $\iota(0) = x_0$. Moreover, these integral submanifolds
 collect into a $r$-dimensional foliation of $M$ whose leaves are everywhere
 tangent to the distribution $\mathcal{D}$.
 \end{theorem}
