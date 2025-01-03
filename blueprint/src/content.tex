@@ -161,13 +161,13 @@ Start by differentiating the inversion identity:
       \frac{\partial \bar{Z}^k}{\partial z'^j}(y,z') \right|_{z'=Z(y,z)}
     .
 \end{align*}
-Recall that being a diffeomorphism, the Jacobian $\frac{\partial Z^k}{\partial
-z'^j}(y,z')$ non-singular on the sufficiently small split domain. Hence,
-rearranging the last equality, we find
+Recall that being a diffeomorphism, the Jacobian $\frac{\partial
+\bar{Z}^k}{\partial z'^j}(y,z')$ non-singular on the sufficiently small split
+domain, with $(\frac{\partial
+\bar{Z}^k}{\partial z'^j}(y,z'))^{-1} = \left. \frac{\partial Z^j}{\partial z^k}(y,z) \right|_{z=\bar{Z}(y,z')}$. Hence, rearranging the last equality, we find
 \[
-  \left. \left(\frac{\partial \bar{Z}^k}{\partial z'^j}(y,z')\right)^{-1}
-    \left(\frac{\partial \bar{Z}^k}{\partial y^{i'}}(y, z')
-      + f_{i'}^j(y,z') \frac{\partial \bar{Z}^k}{\partial z'^j}(y,z')\right) \right|_{z'=Z(y,z)}
+  \left. \frac{\partial Z^j}{\partial z^k}(y,z)
+    L'_{i'} \bar{Z}^k(y,z') \right|_{z'=Z(y,z)}
   = -\left(\frac{\partial Z^j}{\partial y^{i'}}(y,z) - f_{i'}^j(y,Z(y,z))\right) .
 \]
 Hence, if one side of the equality vanishes, then so does the other, which
