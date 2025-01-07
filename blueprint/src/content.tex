@@ -83,7 +83,13 @@ chart $(y,z)\colon M \supset U' \cong \mathbb{R}^r \times \mathbb{R}^{m-r}$, wit
 \[
   L'_{i'} = \frac{\partial}{\partial y^{i'}} + \sum_{j=1}^{m-r} f_{i'}^j(y,z) \frac{\partial}{\partial z^j} .
 \]
-and (e) $[L'_{i'}, L'_{j'}] = 0$, for $i',j'=1,\ldots,r$.
+and (e) $[L'_{i'}, L'_{j'}] = 0$, for $i',j'=1,\ldots,r$, which expressed in terms of $f_{i'}^j$ means (f)
+\[
+  \frac{\partial}{\partial y^{i'}} f_{j'}^j
+    + \sum_{k=1}^{m-r} f_{i'}^k \frac{\partial}{\partial z^k} f_{j'}^j
+  = \frac{\partial}{\partial y^{j'}} f_{i'}^j
+    + \sum_{k=1}^{m-r} f_{j'}^k \frac{\partial}{\partial z^k} f_{i'}^j .
+\]
 \end{lemma}
 \begin{proof}
 Start with the coordinates $(x^1,\ldots,x^m)$ on $U$ and consider the coordinate
@@ -112,19 +118,26 @@ So, defining $\alpha_{i'}^j(y,z) = (\beta_{i}^{i'}(y,z))^{-1}$ on $U''$
 satisfies the desired conclusions (a), (b), (c) and (d), where $f_{i'}^j(y,z) =
 \alpha_{i'}^i(y,z) \gamma_{i}^j(y,z)$.
 
-To prove (e), consider the computation
+To prove (e) and (f), consider the computation
 \begin{align*}
   [L'_{i'}, L'_{j'}]
   &= L'_{i'} L'_{j'} - L'_{j'} L'_{i'}
   \\
   = \sum_{k'=1}^r c'^{k'}_{i'j'} L'_{k'}
   &= \sum_{j=1}^{m-r} \left(\frac{\partial}{\partial y^{i'}} f_{j'}^j - \frac{\partial}{\partial y^{j'}} f_{i'}^j\right)\frac{\partial}{\partial z^j}
-    + \sum_{k=1}^{m-r} \sum_{j=1}^{m-r} \left(f_{i'}^j \frac{\partial}{\partial z^j} f_{j'}^k - f_{j'}^j \frac{\partial}{\partial z^j} f_{i'}^k\right) \frac{\partial}{\partial z^k} .
+    + \sum_{k=1}^{m-r} \sum_{j=1}^{m-r} \left(f_{i'}^j \frac{\partial}{\partial z^j} f_{j'}^k - f_{j'}^j \frac{\partial}{\partial z^j} f_{i'}^k\right) \frac{\partial}{\partial z^k}
+  \\
+  &= \sum_{j=1}^{m-r} \left(
+    \frac{\partial}{\partial y^{i'}} f_{j'}^j
+    + \sum_{k=1}^{m-r} f_{i'}^k \frac{\partial}{\partial z^k} f_{j'}^j
+    - \frac{\partial}{\partial y^{j'}} f_{i'}^j
+    - \sum_{k=1}^{m-r} f_{j'}^k \frac{\partial}{\partial z^k} f_{i'}^j .
+  \right)
 \end{align*}
 Hence, for each fixed $i',j'$, the $\frac{\partial}{\partial y^{k'}}$ components
 of the right-hand side vanish, while those of the left-hand side equal
 $\sum_{k'=1}^{m-r} c'^{k'}_{i'j'} \frac{\partial}{\partial y^{k'}}$, meaning
-that all components of $c'^{k'}_{i'j'}$ must vanish.
+that all components of $c'^{k'}_{i'j'}$ must vanish, proving (e). On the other hand, the vanishing of the right-hand side of the last equality proves (f).
 \end{proof}
 
 \begin{lemma} \label{lem:eq-loc-inv}
@@ -175,21 +188,88 @@ proves the desired equivalence.
 \end{proof}
 
 \begin{lemma} \label{lem:eq-radial}
-\uses{lem:eq-loc-inv}
+\uses{lem:eq-loc-inv, lem:loc-init-split, lem:eq-radial-exists}
 Let $Z^j(y,z)$ be as in Lem.~\ref{lem:eq-loc-inv}. Then, $\zeta^j(t,y,z) =
 Z^j(ty,z)$ satisfies $\zeta^j(0,y,z) = z^j$ and the equations
 \[
   \frac{\partial}{\partial t} \zeta^j(t,y,z) = y^{i'} f_{i'}^j(ty,\zeta(t,y,z)) .
 \]
-Conversely, if $\zeta^j(t,y,z)$ satisfies the equation above, then $Z^j(y,z) =
-\zeta^j(1,y,z)$, defined on a sufficiently small neighborhood of $y=0$,
+Conversely, if $\zeta^j(t,y,z)$ satisfies the initial value problem above, then
+there exists a sufficiently small neighborhood of $(y,z)=(0,0)$ for which
+$Z^j(t,y,z)$ exists up to at least $t=1$. Then $Z^j(y,z) = \zeta^j(1,y,z)$
 satisfies the conditions in the hypotheses of Lem.~\ref{lem:eq-loc-inv}.
 \end{lemma}
+\begin{proof}
+The easy direction is proved by the following computation:
+\begin{align*}
+  \frac{\partial}{\partial t} \zeta^j(t,y,z)
+  &= \frac{\partial}{\partial t} Z^j(ty,z)
+  \\
+  &= y^{i'} \left.\frac{\partial Z^j}{\partial y'^{i'}}(y',z) \right|_{y'=ty}
+  \\
+  &= y^{i'} \left.f_{i'}^j(y',Z^j(y',z)) \right|_{y'=ty}
+  \\
+  &= y^{i'} f_{i'}^j(ty,Z(ty,z))
+  = y^{i'} f_{i'}^j(ty, \zeta(t,y,z)) .
+\end{align*}
+
+For the converse direction, consider the following computation, where we use the
+ODE satisfied by $\zeta^j(t,y,z)$ and the identity from Lem.~\ref{lem:loc-init-split}(f):
+\begin{align*}
+  \frac{\partial}{\partial t} \left(\frac{\partial}{\partial y^{i'}} \zeta^j(t,y,z) - t f_{i'}^j(ty, \zeta(t,y,z))\right)
+  &= \frac{\partial}{\partial y^{i'}} \frac{\partial}{\partial t} \zeta^j(t,y,z)
+    \\ &\quad{}
+    - f_{i'}^j(ty, \zeta(t,y,z))
+    - \left.t y^{j'} \frac{\partial}{\partial y'^{j'}} f_{i'}^{j}(y', \zeta(t,y,z))\right|_{y'=ty}
+    - t \left(\frac{\partial}{\partial t} \zeta^k(t,y,z)\right) \left.\frac{\partial}{\partial z'^k} f_{i'}^j(ty, z')\right|_{z'=\zeta(t,y,z)}
+  \\
+  &= \frac{\partial}{\partial y^{i'}} \left(y^{j'} f_{j'}^j(ty, \zeta(t,y,z))\right)
+    \\ &\quad{}
+    - f_{i'}^j(ty, \zeta(t,y,z))
+    - t y^{j'} \left. \frac{\partial}{\partial y'^{j'}} f_{i'}^{j}(y', z')\right|_{y'=ty, z'=\zeta(t,y,z)}
+    - t y^{j'} \left. f_{j'}^k(y',z') \frac{\partial}{\partial z'^k} f_{i'}^j(y', z')\right|_{y'=ty, z'=\zeta(t,y,z)}
+  \\
+  &= \left.\left(f_{i'}^{j}(y', z')
+      + t y^{j'} \frac{\partial}{\partial y'^{i'}} f_{j'}^j(y', z')
+      + \left(\frac{\partial}{\partial y^{i'}} \zeta^k(t,y,z)\right) y^{j'} \frac{\partial}{\partial z'^k} f_{j'}^j(y', z')
+    \right)\right|_{y'=ty, z'=\zeta(t,y,z)}
+    \\ &\quad{}
+    - \left.\left(
+      f_{i'}^j(y', z')
+      + t y^{j'} \frac{\partial}{\partial y'^{i'}} f_{j'}^{j}(y', z')
+      + t y^{j'} f_{i'}^k(y',z') \frac{\partial}{\partial z'^k} f_{j'}^j(y', z')
+    \right)\right|_{y'=ty, z'=\zeta(t,y,z)}
+  \\
+  &= \left(\frac{\partial}{\partial y^{i'}} \zeta^k(t,y,z) - t f_{i'}^k(ty, \zeta(t,y,z))\right)
+    \left. y^{j'} \frac{\partial}{\partial z'^k} f_{j'}^j(y', z')\right|_{y'=ty, z'=\zeta(t,y,z)}
+\end{align*}
+Hence, we find that $\eta(t,y,z) = \frac{\partial}{\partial y^{i'}}
+\zeta^k(t,y,z) - t f_{i'}^k(ty, \zeta(t,y,z))$ satisfies a linear ODE. Hence, by
+the uniqueness of ODE solutions (Lem.~\ref{lem:eq-radial-exists}(b)), if the
+initial condition $\eta(0,y,z) = 0$ is satisfied, the solution must identically
+vanish, $\eta(t,y,z) = 0$, which proves the desired result about $Z^j(y,z) =
+\zeta^j(1,y,z)$ upon setting $t=1$, (Lem.~\ref{lem:eq-radial-exists}(c)). It
+remains to check the vanishing initial condition:
+\begin{align*}
+  \eta(0,y,z)
+  &= \frac{\partial}{\partial y^{i'}} \zeta^j(0,y,z) - 0 \cdot f_{i'}^j(0 \zeta(0,y,z))
+  \\
+  &= \frac{\partial}{\partial y^{i'}} z^j - 0 = 0 .
+\end{align*}
+\end{proof}
 
 \begin{lemma} \label{lem:eq-radial-exists}
-The ODE initial value problem for $\zeta^j(t,y,z)$ in Lem.~\ref{lem:eq-radial}
-(a) has a solution that is jointly smooth in $(t,y,z)$, which is (b) unique.
+An ODE initial value problem (a sufficiently general one to cover the one for
+$\zeta^j(t,y,z)$ in Lem.~\ref{lem:eq-radial} and the one for
+$\eta_{i'}^j(t,y,z)$ in the proof of Lem.~\ref{lem:eq-radial}) (a) has a
+solution that is jointly smooth in $(t,y,z)$, which (b) is unique, and (c)
+exists (at least) up to time $t=1$ on a sufficiently small neighborhood of
+$(y,z) = (0,0)$.
 \end{lemma}
+\begin{proof}
+This should follow from the Picard-Lindel\"of ODE existence and uniqueness
+theorem with parameters.
+\end{proof}
 
 \begin{definition}[differential forms] \label{def:forms}
 \notready
