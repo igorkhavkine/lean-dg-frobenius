@@ -33,6 +33,21 @@ involution, then there exist $m-r$ smooth functions $u^k(x)$ that satisfy the
 equations $L_i u^k(x) = 0$ and such that their gradients $\nabla u^k(x)$,
 $k=1,\ldots,m-r$ are linearly independent.
 \end{theorem}
+\begin{proof}
+This proof consists of chaining together several intermediate results, which are
+proven in separate lemmas below.
+
+The first step is to replace the $L_i$ operators by some better behaved
+operators $L'_{i'}$, namely satisfying $[L'_{i'}, L'_{j'}] = 0$
+(Lem.~\ref{lem:loc-init-split}(e)) and having a form adapted to a split local
+coordinate system $(y,z)$ around $x_0$. The equations $L'_{i'} u = 0$ and $L_i u
+= 0$ are equivalent (Lem.~\ref{lem:op-frame}, \ref{lem:eq-frame-equiv}).
+Lem.~\ref{lem:eq-radial} shows that there exists a new local coordinate system
+$(y,\bar{Z})$ on a neighborhood of $x_0$, where $\bar{Z}^k=\bar{Z}^k(y,z)$,
+which is better adapted to our differential equations. Lem.~\ref{lem:eq-loc-inv}
+actually shows that the contructed coordinates give us the desired solutions via
+$u^k(x) = Z^k(y(x),z(x))$.
+\end{proof}
 
 \begin{lemma} \label{lem:op-frame}
 If the $L_i$ as in Def.~\ref{def:invol} are in infolution, then the $L'_{i'} =
@@ -247,8 +262,8 @@ Hence, we find that $\eta(t,y,z) = \frac{\partial}{\partial y^{i'}}
 \zeta^k(t,y,z) - t f_{i'}^k(ty, \zeta(t,y,z))$ satisfies a linear ODE. Hence, by
 the uniqueness of ODE solutions (Lem.~\ref{lem:eq-radial-exists}(b)), if the
 initial condition $\eta(0,y,z) = 0$ is satisfied, the solution must identically
-vanish, $\eta(t,y,z) = 0$, which proves the desired result about $Z^j(y,z) =
-\zeta^j(1,y,z)$ upon setting $t=1$, (Lem.~\ref{lem:eq-radial-exists}(c)). It
+vanish, $\eta(t,y,z) = 0$, which upon setting $t=1$ proves that $Z^j(y,z) =
+\zeta^j(1,y,z)$ satisfies the desired differential equation, (Lem.~\ref{lem:eq-radial-exists}(c)). It
 remains to check the vanishing initial condition:
 \begin{align*}
   \eta(0,y,z)
@@ -256,6 +271,13 @@ remains to check the vanishing initial condition:
   \\
   &= \frac{\partial}{\partial y^{i'}} z^j - 0 = 0 .
 \end{align*}
+The proof is completed by noting that the inverse function $\bar{Z}(y,z)$ exists
+on a sufficiently small neighborhood of $(y,z)=(0,0)$, because the continuity of
+$\frac{\partial Z^j}{\partial z^k}$ and the property that $\left.\frac{\partial
+Z^j}{\partial_z^k}\right|_{z=0} = \delta^j_k$ ensures that $Z^j(y,z)$ is an
+immersion (has non-singular jacobian) on a neighborhood of $(y,z)=(0,0)$ and
+hence a diffeomorphism on a possibly smaller neighborhood (use inverse function
+theorem).
 \end{proof}
 
 \begin{lemma} \label{lem:eq-radial-exists}
