@@ -30,5 +30,13 @@
             "icon": "terminal-bash",
             "args": ["--init-file", ".envrc-osx"]
         }
+    },
+    //"terminal.integrated.defaultProfile.windows": "powershell-venv",
+    "terminal.integrated.profiles.windows": {
+    "powershell-venv": {
+        "path": "powershell",
+        "icon": "terminal-powershell",
+        "args": ["-NoExit", "-ExecutionPolicy", "Bypass", "-File", ".envrc-win.ps1"]
     }
+}
 }
