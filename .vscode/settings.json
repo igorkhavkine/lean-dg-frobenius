@@ -37,7 +37,7 @@
             "path": "pwsh",
             //"path": "powershell",
             "icon": "terminal-powershell",
-            "args": ["-NoExit", "-Command", ". .envrc.ps1"]
+            "args": ["-NoExit", "-Command", ". .envrc-win.ps1"]
             //"args": ["-NoExit", "-ExecutionPolicy", "Bypass", "-Command", ". .envrc-win.ps1"]
         }
     }
