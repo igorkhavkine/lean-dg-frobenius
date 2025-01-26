@@ -33,10 +33,12 @@
     },
     //"terminal.integrated.defaultProfile.windows": "powershell-venv",
     "terminal.integrated.profiles.windows": {
-    "powershell-venv": {
-        "path": "powershell",
-        "icon": "terminal-powershell",
-        "args": ["-NoExit", "-ExecutionPolicy", "Bypass", "-File", ".envrc-win.ps1"]
+        "powershell-venv": {
+            "path": "pwsh",
+            //"path": "powershell",
+            "icon": "terminal-powershell",
+            "args": ["-NoExit", "-Command", ". .envrc.ps1"]
+            //"args": ["-NoExit", "-ExecutionPolicy", "Bypass", "-Command", ". .envrc-win.ps1"]
+        }
     }
-}
 }
