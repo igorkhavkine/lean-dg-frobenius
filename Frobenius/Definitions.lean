@@ -1,7 +1,7 @@
+import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Geometry.Manifold.IsManifold.Basic
 import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib
+--import Mathlib
 
 /-
 NOTES:
@@ -73,3 +73,5 @@ abbrev SVectorField {M: Type} {dim: ℕ}
     := SSmoothSection (STangentBundle M)
 
 -- TODO: Lie bracket
+
+#min_imports
