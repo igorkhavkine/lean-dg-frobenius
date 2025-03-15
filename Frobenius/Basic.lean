@@ -1,6 +1,7 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Geometry.Manifold.IsManifold.Basic
 import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
+import Mathlib.Geometry.Manifold.VectorField
 import Mathlib
 
 
@@ -39,10 +40,39 @@ abbrev SSmoothSection {M: Type*} {dim: ℕ}
 
 section TangentBundle
 
+open VectorField ContDiff
+
 variable (M: Type*) {dim: ℕ} [SmoothManifold M dim]
 
 abbrev STangentSpace (x: M)
   := TangentSpace (modelWithCornersSelf ℝ (E dim)) x
+
+-- As of 06.03.2025, Mathlib has a definition of the Lie bracket of vector fields,
+-- and a formalization of a bunch of its properties.
+-- Here's a example: the Lie bracket of two smooth vector fields is a smooth vector field.
+
+-- sections as dependent functions
+variable (V W : Π (x: M), STangentSpace (dim := dim) M x)
+#check mlieBracket (modelWithCornersSelf ℝ (E dim)) V W -- the Lie bracket is defined
+-- Smoothness of sections is encoded as follows:
+variable (hV : ∀ (x : M), ContMDiffAt
+  𝓘(ℝ, E dim) --(modelWithCornersSelf ℝ (E dim))
+  𝓘(ℝ, E dim).tangent
+  ∞
+  (fun y ↦ (V y : TangentBundle (modelWithCornersSelf ℝ (E dim)) M)) x)
+variable (hW : ∀ (x : M), ContMDiffAt
+  (modelWithCornersSelf ℝ (E dim))
+  (modelWithCornersSelf ℝ (E dim)).tangent
+  ∞
+  (fun y ↦ (W y : TangentBundle (modelWithCornersSelf ℝ (E dim)) M)) x)
+-- need to check that the original smoothness of V and W (∞) is at least
+-- as big as 1 + the requested smoothness of their Lie bracket (∞ + 1)
+theorem minSmoothness_inf_add_1_le_inf : (minSmoothness ℝ (∞ + 1)) ≤ ∞ := by
+  rw [minSmoothness_of_isRCLikeNormedField]
+  norm_num
+-- the following proves that the Lie bracket [V,W] is smooth wen V and W are smooth
+example := fun x ↦
+  ContMDiffAt.mlieBracket_vectorField (hV x) (hW x) minSmoothness_inf_add_1_le_inf
 
 
 -- defn of the section of (vec) bundle
