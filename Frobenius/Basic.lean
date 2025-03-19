@@ -105,3 +105,73 @@ end TangentBundle
 def lieBracket {M: Type*} {dim: ℕ} [SmoothManifold M dim]
   (X: @SVectorField M dim _) (Y: @SVectorField M dim _) : @SVectorField M dim _
   := sorry
+
+section FrobLoc
+
+open Function ContDiff
+
+-- bundle ordinary real vector spaces
+class oVectorSpace (V : Type*) (dim : ℕ) extends
+  AddCommGroup V, Module ℝ V, FiniteDimensional ℝ V
+
+class oNormedSpace (V : Type*) (dim : ℕ) extends
+  NormedAddCommGroup V, NormedSpace ℝ V, FiniteDimensional ℝ V
+
+abbrev SmoothFunction {B F : Type*} {dimB dimF : ℕ} [oNormedSpace B dimB] [oNormedSpace F dimF] (f : B → F)
+  := ContDiff ℝ ∞ f
+
+variable {B F : Type*} {dimB dimF : ℕ} [oNormedSpace B dimB] [oNormedSpace F dimF]
+
+-- vector fields on a vector space, as vector valued functions
+variable {v : B → F}
+  (hv : SmoothFunction (dimB := dimB) (dimF := dimF) v)
+variable {w : B → F}
+  (hw : SmoothFunction (dimB := dimB) (dimF := dimF) w)
+
+local instance : oNormedSpace (B × F) (dimB + dimF) := by
+  constructor
+
+noncomputable local instance : oNormedSpace (B →L[ℝ] F) (dimB * dimF) := by
+  constructor
+
+abbrev minSmoothness_nat_le_inf {n : ℕ} : minSmoothness ℝ n ≤ ∞ := by
+  rw [minSmoothness_of_isRCLikeNormedField]
+  exact ENat.LEInfty.out
+
+-- should be made more general
+theorem fderiv_congr (hvw : v = w) : fderiv ℝ v = fderiv ℝ w := by
+  funext x
+  rw [fderiv_def, fderiv_def]
+  refine fderivWithin_congr ?_ (congr_fun hvw x)
+  exact (Set.eqOn_univ v w).mpr hvw
+
+theorem fderiv_compat_of_eq' {f : B × F → B →L[ℝ] F}
+      (hv : SmoothFunction (dimB := dimB) (dimF := dimF) v)
+      (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
+      (hdvf_eq : ∀ x, fderiv ℝ v x = f (x, v x)) :
+    ∀ (x : B) d1 d2, fderiv ℝ (fun x ↦ f (x, v x)) x d1 d2 = fderiv ℝ (fun x ↦ f (x, v x)) x d2 d1 := by
+  intro x d1 d2
+  rw [(funext hdvf_eq).symm]
+  have y := v x
+  have sym_fd := (hv.contDiffAt (x := x)).isSymmSndFDerivAt minSmoothness_nat_le_inf d1 d2
+  exact sym_fd
+
+omit v in
+theorem fderiv_compat_of_eq {f : B × F → B →L[ℝ] F}
+  (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
+  (hf_eq : ∀ (x0 : B) (y : F), ∃ (v : B → F)
+      (hv : SmoothFunction (dimB := dimB) (dimF := dimF) v),
+        v x0 = y ∧ (∀ x, fderiv ℝ v x = f (x, v x))) :
+    ∀ x y d1 d2, (fderiv ℝ f (x, y) (d1, 0) d2 + (fderiv ℝ f (x, y)).comp (.prodMap (ContinuousLinearMap.id ℝ B) (f (x, y))) (d2, 0) d1
+                = fderiv ℝ f (x, y) (d1, 0) d2 + (fderiv ℝ f (x, y)).comp (.prodMap (ContinuousLinearMap.id ℝ B) (f (x, y))) (d2, 0) d1) := by
+  intro x0 y d1 d2
+  obtain ⟨v, hv, hy, hf_eq⟩ := hf_eq x0 y
+  have hf_ext_eq := (comp_def f _).symm ▸ funext hf_eq
+  have hdf_ext_eq := fderiv_congr (dimB := dimB) (dimF := dimB * dimF) hf_ext_eq
+  have hdf_eq := congr_fun hdf_ext_eq x0
+  rw [fderiv_comp] at hdf_eq
+  -- seems almost done
+  sorry
+
+
+end FrobLoc
