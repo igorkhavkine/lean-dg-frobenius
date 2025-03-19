@@ -1,5 +1,7 @@
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Geometry.Manifold.IsManifold.Basic
+import Mathlib.Geometry.Manifold.VectorBundle.Basic
+import Mathlib.Geometry.Manifold.VectorBundle.Tangent
 import Mathlib.Geometry.Manifold.VectorBundle.SmoothSection
 import Mathlib.Geometry.Manifold.VectorField
 import Mathlib
@@ -8,12 +10,13 @@ import Mathlib
 open Nat Real Manifold
 
 abbrev E (dim: ℕ) := (EuclideanSpace ℝ (Fin dim))
+abbrev euclMod (dim: ℕ) := modelWithCornersSelf ℝ (E dim)
 
 class SmoothManifold (M: Type*) (dim: ℕ) extends
-  TopologicalSpace M, ChartedSpace (E dim) M, IsManifold (modelWithCornersSelf ℝ (E dim)) ⊤ M
+  TopologicalSpace M, ChartedSpace (E dim) M, IsManifold (euclMod dim) ⊤ M
 
-abbrev SSmoothMap (X: Type*) {dimX: ℕ} (Y: Type*) {dimY: ℕ} [SmoothManifold X dimX] [SmoothManifold Y dimY]
-  := ContMDiffMap (modelWithCornersSelf ℝ (E dimX)) (modelWithCornersSelf ℝ (E dimY)) X Y ⊤
+abbrev SSmoothMap (X: Type*) {dimX: ℕ} [SmoothManifold X dimX] (Y: Type*) {dimY: ℕ} [SmoothManifold Y dimY]
+  := ContMDiffMap (euclMod dimX) (euclMod dimY) X Y ⊤
 
 
 
@@ -35,7 +38,7 @@ abbrev SSmoothSection {M: Type*} {dim: ℕ}
   (V: M → Type*) -- total space of the bundle
   [tot_topF : TopologicalSpace F] [tot_topFV : TopologicalSpace (Bundle.TotalSpace F V)]
   [fib_topFV : (x:M) → TopologicalSpace (V x)] [fbFV : @FiberBundle _ F _ UniformSpace.toTopologicalSpace V _ _ ] -- This assumption doesn't seem to satisfy the typechecker
-    := @ContMDiffSection _ _ _ _ _ _ _ (modelWithCornersSelf ℝ (E dim)) M _ _ F _ _ ⊤ V _ _ fbFV
+    := @ContMDiffSection _ _ _ _ _ _ _ (euclMod dim) M _ _ F _ _ ⊤ V _ _ fbFV
 
 
 section TangentBundle
@@ -45,7 +48,7 @@ open VectorField ContDiff
 variable (M: Type*) {dim: ℕ} [SmoothManifold M dim]
 
 abbrev STangentSpace (x: M)
-  := TangentSpace (modelWithCornersSelf ℝ (E dim)) x
+  := TangentSpace (euclMod dim) x
 
 -- As of 06.03.2025, Mathlib has a definition of the Lie bracket of vector fields,
 -- and a formalization of a bunch of its properties.
@@ -77,16 +80,23 @@ example := fun x ↦
 
 -- defn of the section of (vec) bundle
 --
-abbrev STangentBundle
-    := TangentBundle (modelWithCornersSelf ℝ (E dim)) M
+noncomputable def STangentBundle
+    := tangentBundleCore (euclMod dim) M
 
 -- find bundle tot.sp. smooth manif
---
-instance: SmoothManifold (@STangentBundle M dim _) (2*dim) :=
+
+-- FOUND: tangent bundle as derivations (https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/DerivationBundle.html)
+---- Didn't study in detail.
+
+-- FOUND: vector fields as smooth maps (x:M) -> T_x M (https://leanprover-community.github.io/mathlib4_docs/Mathlib/Geometry/Manifold/VectorField.html#VectorField.mlieBracket)
+---- Provides theorems about pullbacks and the Lie bracket.
+---- Seems quite isolated from the rest of MathLib.
+
+instance: SmoothManifold (@STangentBundle M dim _).TotalSpace (2*dim) :=
   sorry
 
 abbrev SVectorField
-  := @SSmoothMap M dim (@STangentBundle M dim _) (2*dim) _ _ -- use section
+  := @SSmoothMap M dim _ (@STangentBundle M dim _).TotalSpace (2*dim) _ --M → (@STangentBundle M dim _).TotalSpace
 
 end TangentBundle
 
@@ -94,6 +104,4 @@ end TangentBundle
 --
 def lieBracket {M: Type*} {dim: ℕ} [SmoothManifold M dim]
   (X: @SVectorField M dim _) (Y: @SVectorField M dim _) : @SVectorField M dim _
-  := X∘Y - Y∘X
-
-#min_imports
+  := sorry
