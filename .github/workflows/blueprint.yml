@@ -84,9 +84,9 @@ jobs:
         run: |
             cd docbuild
             # Disable an error message due to a non-blocking bug. See Zulip
-            MATHLIB_NO_CACHE_ON_UPDATE=1 ~/.elan/bin/lake update FLT
+            MATHLIB_NO_CACHE_ON_UPDATE=1 ~/.elan/bin/lake update Frobenius
             # Build the docs
-            ~/.elan/bin/lake build FLT:docs
+            ~/.elan/bin/lake build Frobenius:docs
 
       - name: Copy API documentation to `home_page/docs`
         run: cp -r docbuild/.lake/build/doc home_page/docs
