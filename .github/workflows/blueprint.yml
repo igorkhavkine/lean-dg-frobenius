@@ -6,6 +6,11 @@ on:
       - main # Trigger on pushes to the default branch
   workflow_dispatch:        # Allow manual triggering of the workflow from the GitHub Actions interface
 
+# Cancel previous runs if a new commit is pushed to the same PR or branch
+concurrency:
+  group: ${{ github.ref }}  # Group runs by the ref (branch or PR)
+  cancel-in-progress: true  # Cancel any ongoing runs in the same group
+
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read  # Read access to repository contents
@@ -31,25 +36,14 @@ jobs:
       - name: Build project
         run: ~/.elan/bin/lake build Frobenius
 
-      - name: Cache mathlib API docs
+      - name: Cache Mathlib docs
         uses: actions/cache@v4
         with:
-          path: |
-            .lake/build/doc/Init
-            .lake/build/doc/Lake
-            .lake/build/doc/Lean
-            .lake/build/doc/Std
-            .lake/build/doc/Mathlib
-            .lake/build/doc/declarations
-            .lake/build/doc/find
-            .lake/build/doc/*.*
-            !.lake/build/doc/declarations/declaration-data-Frobenius*
+          path: docbuild/.lake/build/doc
           key: MathlibDoc-${{ hashFiles('lake-manifest.json') }}
-          restore-keys: MathlibDoc-
+          restore-keys: |
+            MathlibDoc-
 
-      - name: Build project API documentation
-        run: ~/.elan/bin/lake -R -Kenv=dev build Frobenius:docs
-      
       - name: Check for `home_page` folder # this is meant to detect a Jekyll-based website
         id: check_home_page
         run: |
@@ -64,7 +58,7 @@ jobs:
       - name: Build blueprint and copy to `home_page/blueprint`
         uses: xu-cheng/texlive-action@v2
         with:
-          docker_image: ghcr.io/xu-cheng/texlive-full:20231201
+          docker_image: ghcr.io/xu-cheng/texlive-full:20250101
           run: |
             # Install necessary dependencies and build the blueprint
             apk update
@@ -86,8 +80,16 @@ jobs:
         run: |
             ~/.elan/bin/lake exe checkdecls blueprint/lean_decls
 
+      - name: Build project API documentation
+        run: |
+            cd docbuild
+            # Disable an error message due to a non-blocking bug. See Zulip
+            MATHLIB_NO_CACHE_ON_UPDATE=1 ~/.elan/bin/lake update FLT
+            # Build the docs
+            ~/.elan/bin/lake build FLT:docs
+
       - name: Copy API documentation to `home_page/docs`
-        run: cp -r .lake/build/doc home_page/docs
+        run: cp -r docbuild/.lake/build/doc home_page/docs
 
       - name: Remove unnecessary lake files from documentation in `home_page/docs`
         run: |
@@ -104,6 +106,8 @@ jobs:
       - name: Build website using Jekyll
         if: env.HOME_PAGE_EXISTS == 'true'
         working-directory: home_page
+        env:
+          JEKYLL_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: JEKYLL_ENV=production bundle exec jekyll build  # Note this will also copy the blueprint and API doc into home_page/_site
 
       - name: "Upload website (API documentation, blueprint and any home page)"
@@ -117,4 +121,3 @@ jobs:
 
       - name: Make sure the API documentation cache works
         run: mv home_page/docs .lake/build/doc
-     

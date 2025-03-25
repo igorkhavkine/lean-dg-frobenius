@@ -5,6 +5,7 @@
 ## Lake
 .lake/*
 .cache/*
+/docbuild/.lake
 ## Blueprint
 /blueprint/print/print.log
 /blueprint/web/

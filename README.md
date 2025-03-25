@@ -1,19 +1,10 @@
 # Lean 4 Project Template
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-lightblue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Zulip : Topic](https://img.shields.io/badge/Zulip-Topic-%237E57C2.svg?logo=zulip&logoColor=white)](https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/Tutorial.3A.20Getting.20Started.20with.20Blueprint-Driven.20Projects)
+[![YouTube : Tutorial](https://img.shields.io/badge/YouTube-Tutorial-%23FF0000.svg?logo=youtube&logoColor=white)](https://youtu.be/KyuyTsLgkMY)
 
 This repository contains a template for blueprint-driven formalization projects in Lean 4.
-
-## Tutorial Talk Video
-
-This is the video recording of the tutorial talk I presented at the Hausdorff Research Institute for
-Mathematics ([HIM](https://www.mathematics.uni-bonn.de/him)) in Bonn.
-
-It was designed for mathematicians at all levels to provide a comprehensive introduction to the design,
-management, and implementation of blueprint-driven formalisation projects in Lean, with almost no
-prerequisite knowledge of Git, GitHub, continuous integration systems, and other technical tools.
-
-[![HIM 2024 Tutorial Talk](https://img.youtube.com/vi/KyuyTsLgkMY/maxresdefault.jpg)](https://youtu.be/KyuyTsLgkMY)
 
 ## Install Lean 4
 
@@ -30,48 +21,10 @@ To create a new repository using this template, ensure you are on the correct re
 3. Select the account or organization where you want to create it, choose a name for the new
 repository, and click the **Create repository** button.
 
-## Configure GitHub Pages
-
-To set up GitHub Pages for your repository, follow these steps:
-
-1. Go to the **Settings** tab of your repository.
-2. In the left sidebar, click on the **Pages** section.
-3. In the **Source** dropdown, select `GitHub Actions`.
-
 ## Clone this Repository
 
 To clone this repository to your local machine, please refer to the relevant section of the
 GitHub documentation [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository).
-
-## Repository Layout
-
-The template repository is organized as follows (listing the main folders and files):
-
-- [`.github`](.github) contains GitHub-specific configuration files and workflows.
-    - [`workflows`](.github/workflows) contains GitHub Actions workflow files.
-        - [`update-dependencies.yml`](.github/workflows/update-dependencies.yml) is the dependency update workflow to be triggered manually by default.
-        [It's not documented yet, but it will be soon.]
-        - [`build-project.yml`](.github/workflows/build-project.yml) defines the workflow for building the Lean project on pushes, pull requests, and manual triggers. This is a minimalistic build workflow which is not necessary if you decide to generate a blueprint (see instructions below) and can be manually disabled by clicking on the **Actions** tab, selecting **Build Project** in the left sidebar, then clicking the horizontal triple dots (⋯) on the right, and choosing **Disable workflow**.
-    - [`dependabot.yml`](.github/dependabot.yml) is the configuration file to automate CI dependency updates.
-- [`.vscode`](.vscode) contains Visual Studio Code configuration files
-    - [`extensions.json`](.vscode/extensions.json) recommends VS Code extensions for the project.
-    - [`settings.json`](.vscode/settings.json) defines the project-specific settings for VS Code.
-- [`Project`](Project) should contain the Lean code files.
-    - [`Mathlib`](Project/Mathlib) should contain `.lean` files with declarations missing from
-    existing Mathlib developments.
-    - [`ForMathlib`](Project/ForMathlib) should contain `.lean` files with new declarations to
-    be upstreamed to Mathlib.
-    - [`Example.lean`](Project/Example.lean) is a sample Lean file.
-- [`scripts`](scripts) contains scripts to update Mathlib ensuring that the latest version is
-fetched and integrated into the development environment.
-- [`.gitignore`](.gitignore) specifies files and folders to be ignored by Git.
-and environment.
-- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) should contain the code of conduct for the project.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) should provide the guidelines for contributing to the
-project.
-- [`lakefile.toml`](lakefile.toml) is the configuration file for the Lake build system used in
-Lean projects.
-- [`lean-toolchain`](lean-toolchain) specifies the Lean version and toolchain used for the project.
 
 ## Customize this Template
 
@@ -100,9 +53,51 @@ To tailor this template to your specific project, follow these steps:
 The script [`customize_template.py`](scripts/customize_template.py) will automatically rename the
 project folder and update the necessary files and configurations to match the new project name.
 
+## Configure GitHub Pages
+
+To set up GitHub Pages for your repository, follow these steps:
+
+1. Go to the **Settings** tab of your repository.
+2. In the left sidebar, click on the **Pages** section.
+3. In the **Source** dropdown, select `GitHub Actions`.
+
+## Repository Layout
+
+The template repository is organized as follows (listing the main folders and files):
+
+- [`.github`](.github) contains GitHub-specific configuration files and workflows.
+    - [`workflows`](.github/workflows) contains GitHub Actions workflow files.
+        - [`build-project.yml`](.github/workflows/build-project.yml) defines the workflow for building
+        the Lean project on pushes, pull requests, and manual triggers. This is a minimalistic build
+        workflow which is not necessary if you decide to generate a blueprint (see instructions below)
+        and can be manually disabled by clicking on the **Actions** tab, selecting **Build Project**
+        in the left sidebar, then clicking the horizontal triple dots (⋯) on the right,
+        and choosing **Disable workflow**.
+        - [`create-release.yml`](.github/workflows/create-release.yml): defines the workflow for creating a new Git tag and GitHub release when the `lean-toolchain` file is updated in the `main` branch. Ensure the following settings are configured under **Settings > Actions > General > Workflow permissions**: "Read and write permissions" and "Allow GitHub Actions to create and approve pull requests".
+        - [`update.yml`](.github/workflows/update.yml) is the dependency
+        update workflow to be triggered manually by default. [It's not documented yet, but it will be soon.]
+    - [`dependabot.yml`](.github/dependabot.yml) is the configuration file to automate CI dependency updates.
+- [`.vscode`](.vscode) contains Visual Studio Code configuration files
+    - [`extensions.json`](.vscode/extensions.json) recommends VS Code extensions for the project.
+    - [`settings.json`](.vscode/settings.json) defines the project-specific settings for VS Code.
+- [`Project`](Project) should contain the Lean code files.
+    - [`Mathlib`](Project/Mathlib) should contain `.lean` files with declarations missing from the
+    current version of Mathlib.
+    - [`Example.lean`](Project/Example.lean) is a sample Lean file.
+- [`scripts`](scripts) contains scripts to update Mathlib ensuring that the latest version is
+fetched and integrated into the development environment.
+- [`.gitignore`](.gitignore) specifies files and folders to be ignored by Git.
+and environment.
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) should contain the code of conduct for the project.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) should provide the guidelines for contributing to the
+project.
+- [`lakefile.toml`](lakefile.toml) is the configuration file for the Lake build system used in
+Lean projects.
+- [`lean-toolchain`](lean-toolchain) specifies the Lean version and toolchain used for the project.
+
 ## Blueprint
 
-### 0. Selected Real-World Collaborative Projects
+### 0. Selected Collaborative Projects
 
 - [Fermat's Last Theorem for Exponent 3](https://pitmonticone.github.io/FLT3/) by Riccardo Brasca et al.
 - [Polynomial Freiman-Ruzsa Conjecture](https://github.com/teorth/pfr) by Terence Tao et al.
@@ -192,10 +187,13 @@ If you have used this template to create your own Lean project and would like to
 
 - [Infinity Cosmos](https://github.com/emilyriehl/infinity-cosmos) by Emily Riehl et al.
 - [Analytic Number Theory Exponent Database](https://github.com/teorth/expdb) by Terence Tao et al.
-- [Equational Theories](https://github.com/teorth/equational_theories) led by Terence Tao.
+- [Equational Theories](https://github.com/teorth/equational_theories) by Terence Tao et al.
 - [Groupoid Model of Homotopy Type Theory](https://github.com/sinhp/GroupoidModelofHoTTinLean4) by Sina Hazratpour et al.
 - [Soundness of FRI](https://github.com/BoltonBailey/FRISoundness) by Bolton Bailey et al.
 - [Weil's Converse Theorem](https://github.com/CBirkbeck/WeilConverse) by Chris Birkbeck et al.
 - [Proofs from THE BOOK](https://github.com/mo271/FormalBook) by Moritz Firsching et al.
 - [Automata Theory](https://github.com/shetzl/autth) by Stefan Hetzl et al.
 - [Dirichlet Nonvanishing](https://github.com/CBirkbeck/DirichletNonvanishing) by Chris Birkbeck et al.
+- [Seymour's Decomposition Theorem](https://github.com/Ivan-Sergeyev/seymour) by Ivan Sergeyev et al.
+- [Spectral Theorem](https://github.com/oliver-butterley/SpectralThm) by Oliver Butterley and Yoh Tanimoto.
+- [NeuralNetworks](https://github.com/or4nge19/NeuralNetworks) by Matteo Cipollina.
