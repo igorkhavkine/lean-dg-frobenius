@@ -142,7 +142,6 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   have hidv_x0 := DifferentiableAt.prodMk (x := x0)
       differentiableAt_id'
       ((hv.contDiffAt hs).differentiableAt (by norm_num))
-  have : ContDiffOn ℝ ∞ f Set.univ := by sorry
   rw [fderivWithin_comp (t := s.prod Set.univ)] at hdf_eq
   rw [DifferentiableWithinAt.fderivWithin_prodMk, fderivWithin_id'] at hdf_eq
   -- extra hypotheses needed to apply the last rewritings
@@ -162,15 +161,13 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
     simp only [Prod.mk_add_mk, add_zero, zero_add]
   replace hdf_eq := d1_add ▸ d2_add ▸ hdf_eq
   simp only [hf_eq, comp_def, hy, map_add, ContinuousLinearMap.add_apply] at hdf_eq
-  have := fderivWithin_subset
+  have hf_subset := fderivWithin_subset
     (𝕜 := ℝ) (f := f) (x := (x0, y))
-    (?_ : ((s.prod Set.univ) ⊆ Set.univ))
-    ?_ ?_
-  -- more extra differentiability hypotheses
-  case refine_1 => sorry
-  case refine_3 => sorry
-  case refine_2 => sorry
-  rw [this, hf_eq hx0, comp_apply, hy] at hdf_eq
+    (s.prod Set.univ).subset_univ
+    (uniqueDiffWithinAt_of_mem_nhds (prod_mem_nhds hs Filter.univ_mem))
+    ((hf.contDiffAt (x := (x0, y))).differentiableWithinAt (by norm_num))
+
+  rw [hf_subset, hf_eq hx0, comp_apply, hy] at hdf_eq
   simp only [fderiv_def]
   convert hdf_eq.symm
 
