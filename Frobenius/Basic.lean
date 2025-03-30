@@ -108,8 +108,8 @@ omit v in
 theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
   (hf_eq : ∀ (x0 : B) (y : F), ∃ (v : B → F) (s : Set B) (hs : s ∈ nhds x0)
-      (hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v s),
-        v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v s) x = f (x, v x))) :
+      (hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
+        v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))) :
     ∀ x y d1 d2, (fderiv ℝ f (x, y) (d1, 0) d2
                   + (fderiv ℝ f (x, y)) (0, f (x, y) d1) d2
                 = fderiv ℝ f (x, y) (d2, 0) d1
@@ -117,23 +117,26 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   intro x0 y d1 d2
   replace ⟨v, s, hs, hv, hy, hf_eq⟩ := hf_eq x0 y
   have hx0 := mem_of_mem_nhds hs
+  have hx0i : x0 ∈ interior s := mem_interior_iff_mem_nhds.mpr hs
+  have hsi : interior s ⊆ s := interior_subset
+  have hudsi : UniqueDiffWithinAt ℝ (interior s) x0 := isOpen_interior.uniqueDiffWithinAt hx0i
   --have hx0y : (x0, y) ∈ s.prod Set.univ := by sorry
   unfold SmoothFunction at hf
   unfold SmoothFunctionOn at hv
-  replace hf_eq : Set.EqOn (fderivWithin ℝ v s) (fun x ↦ f (x, v x)) s := by
+  replace hf_eq : Set.EqOn (fderivWithin ℝ v (interior s)) (fun x ↦ f (x, v x)) (interior s) := by
     unfold Set.EqOn
-    exact hf_eq
+    intro x hx
+    exact hf_eq x (Set.mem_of_subset_of_mem hsi hx)
   replace hf_eq := (comp_def f _).symm ▸ hf_eq
-  have hdf_eq := fderivWithin_congr (𝕜 := ℝ) hf_eq (hf_eq hx0)
+  have hdf_eq := fderivWithin_congr (𝕜 := ℝ) hf_eq (hf_eq hx0i)
   have hdf_left := DFunLike.congr_fun (DFunLike.congr_fun hdf_eq d2) d1
   have hdf_right := DFunLike.congr_fun (DFunLike.congr_fun hdf_eq d1) d2
   have sym_vdd := by
-    apply (hv.contDiffWithinAt hx0).isSymmSndFDerivWithinAt minSmoothness_nat_le_inf ?_ ?_ hx0 d2 d1
-    · sorry
-    · have := mem_interior_iff_mem_nhds.mpr hs
-      refine mem_closure_iff_clusterPt.mpr ?_
-      unfold ClusterPt
-      sorry
+    apply (hv.contDiffWithinAt hx0i).isSymmSndFDerivWithinAt
+      minSmoothness_nat_le_inf
+      isOpen_interior.uniqueDiffOn
+      (by rw [interior_interior]; exact Set.mem_of_subset_of_mem subset_closure hx0i)
+      hx0i d2 d1
   replace hdf_eq := calc
     _ = _ := hdf_left.symm
     _ = _ := sym_vdd
@@ -141,23 +144,24 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   have hf_x0 := (hf.contDiffAt (x := (x0, v x0))).differentiableAt (by norm_num)
   have hidv_x0 := DifferentiableAt.prodMk (x := x0)
       differentiableAt_id'
-      ((hv.contDiffAt hs).differentiableAt (by norm_num))
-  rw [fderivWithin_comp (t := s.prod Set.univ)] at hdf_eq
-  rw [DifferentiableWithinAt.fderivWithin_prodMk, fderivWithin_id'] at hdf_eq
-  -- extra hypotheses needed to apply the last rewritings
-  case hg => sorry --exact hf_x0
-  case hf => sorry --exact hidv_x0
-  case hf₁ => sorry --exact differentiableAt_id'
-  case hf₂ => sorry --exact (hv.contDiffAt hs).differentiableAt (by norm_num)
-  case hxs => sorry
-  case h => sorry
-  case hxs => sorry
-  swap; · sorry
+      ((hv.contDiffAt (interior_mem_nhds.mpr hs)).differentiableAt (by norm_num))
+  -- these rewritings will have hypotheses, which are handled after each rewrite
+  rw [fderivWithin_comp (t := /-s.prod-/ Set.univ)] at hdf_eq
+  case hg => exact hf_x0.differentiableWithinAt
+  case hf => exact hidv_x0.differentiableWithinAt
+  case h => exact Set.mapsTo_univ _ _
+  case hxs => exact hudsi
+  rw [DifferentiableWithinAt.fderivWithin_prodMk] at hdf_eq
+  case hf₁ => exact differentiableWithinAt_id'
+  case hf₂ => exact (hv.contDiffWithinAt hx0i).differentiableWithinAt (by norm_num)
+  case hxs => exact hudsi
+  rw [fderivWithin_id'] at hdf_eq
+  swap; · exact hudsi
   simp only [ContinuousLinearMap.coe_comp', comp_apply, ContinuousLinearMap.prod_apply,
     ContinuousLinearMap.coe_id', id_eq] at hdf_eq
-  have d1_add : (d1, ((fderivWithin ℝ v s) x0) d1) = (d1,0) + (0,((fderivWithin ℝ v s) x0) d1) := by
+  have d1_add : (d1, ((fderivWithin ℝ v (interior s)) x0) d1) = (d1,0) + (0,((fderivWithin ℝ v (interior s)) x0) d1) := by
     simp only [Prod.mk_add_mk, add_zero, zero_add]
-  have d2_add : (d2, (fderivWithin ℝ v s x0) d2) = (d2,0) + (0,(fderivWithin ℝ v s x0) d2) := by
+  have d2_add : (d2, (fderivWithin ℝ v (interior s) x0) d2) = (d2,0) + (0,(fderivWithin ℝ v (interior s) x0) d2) := by
     simp only [Prod.mk_add_mk, add_zero, zero_add]
   replace hdf_eq := d1_add ▸ d2_add ▸ hdf_eq
   simp only [hf_eq, comp_def, hy, map_add, ContinuousLinearMap.add_apply] at hdf_eq
@@ -167,7 +171,7 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
     (uniqueDiffWithinAt_of_mem_nhds (prod_mem_nhds hs Filter.univ_mem))
     ((hf.contDiffAt (x := (x0, y))).differentiableWithinAt (by norm_num))
 
-  rw [hf_subset, hf_eq hx0, comp_apply, hy] at hdf_eq
+  rw [/-hf_subset,-/ hf_eq hx0i, comp_apply, hy] at hdf_eq
   simp only [fderiv_def]
   convert hdf_eq.symm
 
