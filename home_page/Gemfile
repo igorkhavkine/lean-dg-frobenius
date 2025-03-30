@@ -1,5 +1,8 @@
 source "https://rubygems.org"
 
+# Restrict to version that patched a recent security vulnerability (2025-03-25).
+gem "nokogiri", ">= 1.18.4"
+
 # To upgrade, run `bundle update github-pages`.
 gem "github-pages", group: :jekyll_plugins
 # If you have any plugins, put them here!

@@ -1,3 +1,5 @@
 export VSCODE_INJECTION=1 # seems not passed automatically to custom profiles
 source $(code --locate-shell-integration-path bash)
-source .env/bin/activate
+if [ -e .env/bin/activate ]; then
+  source .env/bin/activate
+fi
