@@ -5,6 +5,16 @@ section FrobLoc
 
 open Function ContDiff
 
+theorem fderiv_congr
+    (𝕜 : Type*) [NontriviallyNormedField 𝕜]
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+    {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {v w : E → F} (hvw : v = w) : fderiv 𝕜 v = fderiv 𝕜 w := by
+  funext x
+  rw [fderiv_def, fderiv_def]
+  refine fderivWithin_congr ?_ (congr_fun hvw x)
+  exact (Set.eqOn_univ v w).mpr hvw
+
 -- bundle ordinary real vector spaces
 class oVectorSpace (V : Type*) (dim : ℕ) extends
   AddCommGroup V, Module ℝ V, FiniteDimensional ℝ V
@@ -36,16 +46,13 @@ abbrev minSmoothness_nat_le_inf {n : ℕ} : minSmoothness ℝ n ≤ ∞ := by
   rw [minSmoothness_of_isRCLikeNormedField]
   exact ENat.LEInfty.out
 
--- should be made more general
-theorem fderiv_congr (hvw : v = w) : fderiv ℝ v = fderiv ℝ w := by
-  funext x
-  rw [fderiv_def, fderiv_def]
-  refine fderivWithin_congr ?_ (congr_fun hvw x)
-  exact (Set.eqOn_univ v w).mpr hvw
+abbrev TotalFderivCompat (f : B × F → B →L[ℝ] F) := ∀ x y d1 d2,
+  (fderiv ℝ f (x, y) (d1, 0) d2 + (fderiv ℝ f (x, y)) (0, f (x, y) d1) d2
+  = fderiv ℝ f (x, y) (d2, 0) d1 + (fderiv ℝ f (x, y)) (0, f (x, y) d2) d1)
 
 theorem fderiv_compat_of_eq' {f : B × F → B →L[ℝ] F}
       (hv : SmoothFunction (dimB := dimB) (dimF := dimF) v)
-      (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
+      (_hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
       (hdvf_eq : ∀ x, fderiv ℝ v x = f (x, v x)) :
     ∀ (x : B) d1 d2, fderiv ℝ (fun x ↦ f (x, v x)) x d1 d2 = fderiv ℝ (fun x ↦ f (x, v x)) x d2 d1 := by
   intro x d1 d2
@@ -62,17 +69,15 @@ omit v in
 theorem fderiv_compat_of_eq {f : B × F → B →L[ℝ] F}
   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
   (hf_eq : ∀ (x0 : B) (y : F), ∃ (v : B → F)
-      (hv : SmoothFunction (dimB := dimB) (dimF := dimF) v),
+      (_hv : SmoothFunction (dimB := dimB) (dimF := dimF) v),
         v x0 = y ∧ (∀ x, fderiv ℝ v x = f (x, v x))) :
-    ∀ x y d1 d2, (fderiv ℝ f (x, y) (d1, 0) d2
-                  + (fderiv ℝ f (x, y)) (0, f (x, y) d1) d2
-                = fderiv ℝ f (x, y) (d2, 0) d1
-                  + (fderiv ℝ f (x, y)) (0, f (x, y) d2) d1) := by
+    TotalFderivCompat f := by
   intro x0 y d1 d2
   replace ⟨v, hv, hy, hf_eq⟩ := hf_eq x0 y
   unfold SmoothFunction at hf hv
   replace hf_eq := (comp_def f _).symm ▸ funext hf_eq
-  replace hdf_eq := fderiv_congr (dimB := dimB) (dimF := dimB * dimF) hf_eq
+  --have hdf_eq := fderiv_congr ℝ hf_eq
+  have hdf_eq := Eq.refl (fderiv ℝ (fderiv ℝ v)); nth_rw 2 [hf_eq] at hdf_eq -- instead of fderiv_congr
   replace hdf_eq := (congr_fun hdf_eq x0)
   have hdf_left := DFunLike.congr_fun (DFunLike.congr_fun hdf_eq d2) d1
   have hdf_right := DFunLike.congr_fun (DFunLike.congr_fun hdf_eq d1) d2
@@ -107,13 +112,10 @@ theorem fderiv_compat_of_eq {f : B × F → B →L[ℝ] F}
 omit v in
 theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
-  (hf_eq : ∀ (x0 : B) (y : F), ∃ (v : B → F) (s : Set B) (hs : s ∈ nhds x0)
-      (hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
+  (hf_eq : ∀ (x0 : B) (y : F), ∃ (v : B → F) (s : Set B) (_hs : s ∈ nhds x0)
+      (_hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
         v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))) :
-    ∀ x y d1 d2, (fderiv ℝ f (x, y) (d1, 0) d2
-                  + (fderiv ℝ f (x, y)) (0, f (x, y) d1) d2
-                = fderiv ℝ f (x, y) (d2, 0) d1
-                  + (fderiv ℝ f (x, y)) (0, f (x, y) d2) d1) := by
+    TotalFderivCompat f := by
   intro x0 y d1 d2
   replace ⟨v, s, hs, hv, hy, hf_eq⟩ := hf_eq x0 y
   have hx0 := mem_of_mem_nhds hs
@@ -168,5 +170,18 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   simp only [fderiv_def]
   -- after simplifying the chain rule we have the exact result
   exact hdf_eq.symm
+
+omit v in
+theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
+  (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
+  (hdf : TotalFderivCompat f) : ∀ (x0 : B) (y : F), ∃ (v : B → F) (s : Set B) (_hs : s ∈ nhds x0)
+      (_hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
+        v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))
+    := by
+  intro x0 y
+  -- use Picard-Lindelöf here
+  -- set up candidate solution by integrating radially from x0
+  -- check that the candidate solution is indeed a solution
+  sorry
 
 end FrobLoc
