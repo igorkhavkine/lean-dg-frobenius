@@ -120,15 +120,16 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   have hx0i : x0 ∈ interior s := mem_interior_iff_mem_nhds.mpr hs
   have hsi : interior s ⊆ s := interior_subset
   have hudsi : UniqueDiffWithinAt ℝ (interior s) x0 := isOpen_interior.uniqueDiffWithinAt hx0i
-  --have hx0y : (x0, y) ∈ s.prod Set.univ := by sorry
   unfold SmoothFunction at hf
   unfold SmoothFunctionOn at hv
+  -- prepare hf_eq for the application of the chain rule
   replace hf_eq : Set.EqOn (fderivWithin ℝ v (interior s)) (fun x ↦ f (x, v x)) (interior s) := by
     unfold Set.EqOn
     intro x hx
     exact hf_eq x (Set.mem_of_subset_of_mem hsi hx)
   replace hf_eq := (comp_def f _).symm ▸ hf_eq
   have hdf_eq := fderivWithin_congr (𝕜 := ℝ) hf_eq (hf_eq hx0i)
+  -- prepare the hypotheses for and use the symmetry of the second derivatives
   have hdf_left := DFunLike.congr_fun (DFunLike.congr_fun hdf_eq d2) d1
   have hdf_right := DFunLike.congr_fun (DFunLike.congr_fun hdf_eq d1) d2
   have sym_vdd := by
@@ -145,34 +146,27 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   have hidv_x0 := DifferentiableAt.prodMk (x := x0)
       differentiableAt_id'
       ((hv.contDiffAt (interior_mem_nhds.mpr hs)).differentiableAt (by norm_num))
-  -- these rewritings will have hypotheses, which are handled after each rewrite
-  rw [fderivWithin_comp (t := /-s.prod-/ Set.univ)] at hdf_eq
+  -- apply the chain rule, with simplifications
+  rw [fderivWithin_comp (t := Set.univ) (hxs := hudsi)] at hdf_eq
   case hg => exact hf_x0.differentiableWithinAt
   case hf => exact hidv_x0.differentiableWithinAt
   case h => exact Set.mapsTo_univ _ _
-  case hxs => exact hudsi
-  rw [DifferentiableWithinAt.fderivWithin_prodMk] at hdf_eq
+  rw [DifferentiableWithinAt.fderivWithin_prodMk (hxs := hudsi)] at hdf_eq
   case hf₁ => exact differentiableWithinAt_id'
   case hf₂ => exact (hv.contDiffWithinAt hx0i).differentiableWithinAt (by norm_num)
-  case hxs => exact hudsi
-  rw [fderivWithin_id'] at hdf_eq
-  swap; · exact hudsi
+  rw [fderivWithin_id' hudsi] at hdf_eq
   simp only [ContinuousLinearMap.coe_comp', comp_apply, ContinuousLinearMap.prod_apply,
     ContinuousLinearMap.coe_id', id_eq] at hdf_eq
+  -- expand the chainrule in both arguments
   have d1_add : (d1, ((fderivWithin ℝ v (interior s)) x0) d1) = (d1,0) + (0,((fderivWithin ℝ v (interior s)) x0) d1) := by
     simp only [Prod.mk_add_mk, add_zero, zero_add]
   have d2_add : (d2, (fderivWithin ℝ v (interior s) x0) d2) = (d2,0) + (0,(fderivWithin ℝ v (interior s) x0) d2) := by
     simp only [Prod.mk_add_mk, add_zero, zero_add]
   replace hdf_eq := d1_add ▸ d2_add ▸ hdf_eq
   simp only [hf_eq, comp_def, hy, map_add, ContinuousLinearMap.add_apply] at hdf_eq
-  have hf_subset := fderivWithin_subset
-    (𝕜 := ℝ) (f := f) (x := (x0, y))
-    (s.prod Set.univ).subset_univ
-    (uniqueDiffWithinAt_of_mem_nhds (prod_mem_nhds hs Filter.univ_mem))
-    ((hf.contDiffAt (x := (x0, y))).differentiableWithinAt (by norm_num))
-
-  rw [/-hf_subset,-/ hf_eq hx0i, comp_apply, hy] at hdf_eq
+  rw [hf_eq hx0i, comp_apply, hy] at hdf_eq
   simp only [fderiv_def]
-  convert hdf_eq.symm
+  -- after simplifying the chain rule we have the exact result
+  exact hdf_eq.symm
 
 end FrobLoc
