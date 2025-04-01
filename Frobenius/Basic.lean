@@ -1,9 +1,9 @@
 import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Prod
 
-section FrobLoc
+noncomputable section FrobLoc
 
-open Function ContDiff
+open Classical Function ContDiff
 
 theorem fderiv_congr
     (𝕜 : Type*) [NontriviallyNormedField 𝕜]
@@ -174,14 +174,32 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
 omit v in
 theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
-  (hdf : TotalFderivCompat f) : ∀ (x0 : B) (y : F), ∃ (v : B → F) (s : Set B) (_hs : s ∈ nhds x0)
+  (hdf : TotalFderivCompat f) : ∀ (x0 : B) (y : F) (s : Set B), ∃ (v : B → F) (_hs : s ∈ nhds x0)
       (_hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
         v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))
     := by
   intro x0 y
   -- use Picard-Lindelöf here
   -- set up candidate solution by integrating radially from x0
+  have ex1 := fun (z : F → ℝ → F) x t => deriv (z y) t = (f (t • (x-x0), z y t)) x
+  have ex2 := fun (v : B → F) (z : F → ℝ → F) (x : B) t => z y t = v (t • (x-x0))
+  have hpl (x : B) : IsPicardLindelof (fun t' (y' : F) => (f (t' • (x-x0), y')) x) (-1) 0 1 y ?L ?R ?C := sorry
+  have ex3 := fun (x : B) => IsPicardLindelof.exists_forall_hasDerivWithinAt_Icc_eq
+    y
+    (hpl x)
+  case L => sorry
+  case R => sorry
+  case C => sorry
+  let v (x : B) : F := by
+    -- How to extract the existence of an ODE solution from (ex3 x)?
+    -- see `exists_isIntegralCurveAt_of_contMDiffAt` for inspiration
+    obtain ⟨v', hv'y, hv'⟩ := ex3 x
+    sorry
   -- check that the candidate solution is indeed a solution
   sorry
+
+#check IsPicardLindelof
+#check IsPicardLindelof.exists_forall_hasDerivWithinAt_Icc_eq
+#check exists_isIntegralCurveAt_of_contMDiffAt
 
 end FrobLoc
