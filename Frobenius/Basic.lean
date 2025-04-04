@@ -1,5 +1,6 @@
 import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Prod
+import Mathlib.Topology.ContinuousMap.Bounded.Basic
 
 noncomputable section FrobLoc
 
@@ -171,33 +172,86 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   -- after simplifying the chain rule we have the exact result
   exact hdf_eq.symm
 
+-- a try at proving the local existence theorem
 omit v in
 theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
-  (hdf : TotalFderivCompat f) : ∀ (x0 : B) (y : F) (s : Set B), ∃ (v : B → F) (_hs : s ∈ nhds x0)
+  (hdf : TotalFderivCompat f) :
+      ∀ (x0 : B) (y : F), ∃ (s : Set B) (_hs : s ∈ nhds x0) (v : B → F)
       (_hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
         v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))
     := by
   intro x0 y
   -- use Picard-Lindelöf here
   -- set up candidate solution by integrating radially from x0
-  have ex1 := fun (z : F → ℝ → F) x t => deriv (z y) t = (f (t • (x-x0), z y t)) x
-  have ex2 := fun (v : B → F) (z : F → ℝ → F) (x : B) t => z y t = v (t • (x-x0))
-  have hpl (x : B) : IsPicardLindelof (fun t' (y' : F) => (f (t' • (x-x0), y')) x) (-1) 0 1 y ?L ?R ?C := sorry
-  have ex3 := fun (x : B) => IsPicardLindelof.exists_forall_hasDerivWithinAt_Icc_eq
-    y
-    (hpl x)
+  have ex1 := fun (z : F → ℝ → F) x t => deriv (z y) t = (f (x0 + t • (x-x0), z y t)) x
+  have ex2 := fun (v : B → F) (z : F → ℝ → F) (x : B) t => z y t = v (x0 + t • (x-x0))
+  --let BtoF := B →ᵇ F -- XXX: →ᵇ notation not working for some reason
+  let BtoF := BoundedContinuousFunction B F
+  let ff (t' : ℝ) (y' : BtoF) : BtoF := by
+    --unfold BtoF
+    constructor; swap
+    · constructor; swap
+      · exact fun (x : B) => (f (x0 + t' • (x-x0), y' x)) (x-x0)
+      sorry
+    sorry
+  have hpl : IsPicardLindelof ff (-1) 0 1 (.const _ y) ?L ?R ?C := sorry
   case L => sorry
   case R => sorry
   case C => sorry
-  let v (x : B) : F := by
-    -- How to extract the existence of an ODE solution from (ex3 x)?
-    -- see `exists_isIntegralCurveAt_of_contMDiffAt` for inspiration
-    obtain ⟨v', hv'y, hv'⟩ := ex3 x
-    sorry
+  have ex3 := hpl.exists_forall_hasDerivWithinAt_Icc_eq
+    (BoundedContinuousFunction.const B y)
+  obtain ⟨v', hv'y, hv'⟩ := ex3
+  --replace hv' := BAll.imp_right
+  --  (fun t ht => HasDerivWithinAt.derivWithin
+  --    (hxs := (uniqueDiffOn_Icc (by norm_num : -1 < (1:ℝ))).uniqueDiffWithinAt ht))
+  --  hv'
+  replace hv' := fun t (ht : t ∈ _) => -- rewrite HasDerivWithinAt as equality
+    HasDerivWithinAt.derivWithin
+      (hv' t ht)
+      (hxs := (uniqueDiffOn_Icc (by norm_num : -1 < (1:ℝ))).uniqueDiffWithinAt ht)
+  let v := v' 1
+  obtain ⟨⟨v, hvc⟩, ⟨vC,hvb⟩⟩ := v
+  simp only at hvb
+  have hs := Metric.closedBall_mem_nhds x0 (?hR : (0:ℝ) < ?R)
+  set s := Metric.closedBall x0 ?R -- XXX: what radius R to use, same as in hpl?
+  case R => sorry
+  case hR => sorry
+  use s, hs
+  use v
+  use ?hvsm -- XXX: delay proving that v is smooth
+  case hvsm => sorry
   -- check that the candidate solution is indeed a solution
-  sorry
+  constructor
+  case left =>
+    -- check initial condition from hv'y ?
+    -- maybe need to do more, like get explicit constant solution for (x-x0)=0?
+    have congr_bcf {a b : BtoF} (_ : a = b) : ∀ x, a.toFun x = b.toFun x := sorry
+    have ex4 := fun t (ht : t ∈ _) => congr_bcf (hv' t ht)
+    -- XXX: why is there no `ball_forall_swap`?
+    replace ex4 := forall_swap.mp (fun t => imp_forall_iff.mp (ex4 t))
+    unfold ff at ex4
+    --simp only [ContinuousMap.toFun_eq_coe, BoundedContinuousFunction.coe_toContinuousMap, zero_smul, add_zero] at ex4
+    simp only [ContinuousMap.toFun_eq_coe, BoundedContinuousFunction.coe_toContinuousMap] at ex4
+    replace ex4 := ex4 x0
+    simp only [sub_self, smul_zero, add_zero, and_imp, map_zero] at ex4
+    have ex5 := fun t (ht : t ∈ Set.Ico (-1) 1) => ex4 t (Set.mem_Icc_of_Ico ht)
+    have deriv_arg_swap (x:B) (t) (_ : t ∈ Set.Ico (-1) 1) : (derivWithin v' (Set.Icc (-1) 1) t) x = (derivWithin (fun s => v' s x) (Set.Icc (-1) 1) t) := sorry
+    have ex6 := fun t (ht : _) => (deriv_arg_swap x0 t ht) ▸ ex5 t ht
+    have ex7:= constant_of_derivWithin_zero  ?v'diff ex6
+    case v'diff => sorry
+    have := calc
+      v' 1 x0 = v' (-1:ℝ) x0 := by exact ex7 1 (by norm_num)
+      _       = v' 0 x0 := by exact (ex7 0 (by norm_num)).symm
+      _       = y := by rw [hv'y]; simp only [BoundedContinuousFunction.const_apply]
+    convert this -- now almost done
+    -- somehow the context lost the definition v := (v' 1)
+    sorry
+  case right =>
+    -- need a special argument here
+    sorry
 
+#check BoundedContinuousFunction
 #check IsPicardLindelof
 #check IsPicardLindelof.exists_forall_hasDerivWithinAt_Icc_eq
 #check exists_isIntegralCurveAt_of_contMDiffAt
