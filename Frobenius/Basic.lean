@@ -172,6 +172,53 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   -- after simplifying the chain rule we have the exact result
   exact hdf_eq.symm
 
+
+-- TODO: The hypotheses are too strong.
+-- Should be solutions in just one direction.
+--
+lemma unique_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
+  (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
+  (hdf : TotalFderivCompat f) {x0 : B} {y : F} {s : Set B} {hs : s ∈ nhds x0} {v1 v2 : B → F} (v1_smooth : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v1 (interior s)) (v2_smooth : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v2 (interior s)) (v1_init : v1 x0 = y) (v2_init : v2 x0 = y) (v1_sol : ∀ x ∈ s, (fderivWithin ℝ v1 (interior s)) x = f (x, v1 x)) (v2_sol : ∀ x ∈ s, (fderivWithin ℝ v2 (interior s)) x = f (x, v2 x))
+  : ∀ x ∈ s, v1 x = v2 x
+  := sorry
+
+
+lemma deriv_to_partial
+  {v : ℝ → BoundedContinuousFunction B F} {t : ℝ}
+  {v' : BoundedContinuousFunction B F} {D : Set ℝ}
+  (hd : HasDerivWithinAt v v' D t)
+  : ∀ x : B, HasDerivWithinAt (fun s => v s x) (v' x) D t
+  := by
+    intro x
+    rw [hasDerivWithinAt_iff_isLittleO]
+    rw [hasDerivWithinAt_iff_isLittleO] at hd
+
+    have norm_littleo_sup
+      : (fun s => v s x - v t x - (s-t) • (v' x)) =O[nhdsWithin t D] (fun s => v s - v t - (s-t) • v')
+      := by
+        rw [Asymptotics.isBigO_iff_isBigOWith]
+        use 1
+        rw [Asymptotics.IsBigOWith_def]
+        apply eventually_nhdsWithin_of_forall
+        intro s hs
+        rw [one_mul]
+        have apply_distr :
+          v s x - v t x - (s-t) • (v' x) = (v s - v t - (s-t) • v') x
+          := by simp
+        rw [apply_distr]
+        apply BoundedContinuousFunction.norm_coe_le_norm
+
+    exact (Asymptotics.IsBigO.trans_isLittleO norm_littleo_sup hd)
+
+-- Probably need to assume differentiability
+--
+lemma deriv_arg_swap
+  (v : ℝ → BoundedContinuousFunction B F)
+  (x : B) {t : ℝ} (ht : t ∈ Set.Ico (-1) 1)
+  : derivWithin v (Set.Icc (-1) 1) t x = derivWithin (fun s => v s x) (Set.Icc (-1) 1) t
+  := by
+    sorry
+
 -- a try at proving the local existence theorem
 omit v in
 theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
@@ -236,8 +283,8 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
     replace ex4 := ex4 x0
     simp only [sub_self, smul_zero, add_zero, and_imp, map_zero] at ex4
     have ex5 := fun t (ht : t ∈ Set.Ico (-1) 1) => ex4 t (Set.mem_Icc_of_Ico ht)
-    have deriv_arg_swap (x:B) (t) (_ : t ∈ Set.Ico (-1) 1) : (derivWithin v' (Set.Icc (-1) 1) t) x = (derivWithin (fun s => v' s x) (Set.Icc (-1) 1) t) := sorry
-    have ex6 := fun t (ht : _) => (deriv_arg_swap x0 t ht) ▸ ex5 t ht
+
+    have ex6 := fun t (ht : _) => (deriv_arg_swap v' x0 ht) ▸ ex5 t ht
     have ex7:= constant_of_derivWithin_zero  ?v'diff ex6
     case v'diff => sorry
     have := calc
