@@ -257,8 +257,13 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
     HasDerivWithinAt.derivWithin
       (hv' t ht)
       (hxs := (uniqueDiffOn_Icc (by norm_num : -1 < (1:ℝ))).uniqueDiffWithinAt ht)
+
   let v := v' 1
-  obtain ⟨⟨v, hvc⟩, ⟨vC,hvb⟩⟩ := v
+
+  -- Avoid shadowing `v`, since this forgets the bounded continuous structure.
+  --
+  have ⟨⟨_, hvc⟩, ⟨vC,hvb⟩⟩ := v
+
   simp only at hvb
   have hs := Metric.closedBall_mem_nhds x0 (?hR : (0:ℝ) < ?R)
   set s := Metric.closedBall x0 ?R -- XXX: what radius R to use, same as in hpl?
@@ -286,14 +291,12 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
 
     have ex6 := fun t (ht : _) => (deriv_arg_swap v' x0 ht) ▸ ex5 t ht
     have ex7:= constant_of_derivWithin_zero  ?v'diff ex6
-    case v'diff => sorry
+    case v'diff => sorry -- See `deriv_arg_swap`, this may require an extra assumption.
     have := calc
       v' 1 x0 = v' (-1:ℝ) x0 := by exact ex7 1 (by norm_num)
       _       = v' 0 x0 := by exact (ex7 0 (by norm_num)).symm
       _       = y := by rw [hv'y]; simp only [BoundedContinuousFunction.const_apply]
-    convert this -- now almost done
-    -- somehow the context lost the definition v := (v' 1)
-    sorry
+    convert this
   case right =>
     -- need a special argument here
     sorry
