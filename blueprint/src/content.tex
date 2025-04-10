@@ -88,6 +88,23 @@ The computation
 shows that $L_i u = 0$, $i=1,\ldots,r$, implies $L'_{i'} u = 0$ for any $i'=1,\ldots,r$.
 \end{proof}
 
+\begin{definition}[curvature] \label{def:curvature}
+Consider (finite-dimensional?) vector spaces $B$, $F$, with standard coordinates
+$x^a$ and $z^c$ respectively. For a smooth function $g_a^c\colon U\subseteq B
+\times F \to B^* \otimes F$, where $B^*$ is the linear dual of $B$, define its
+\emph{curvature} $R[g] \colon B \times F \to (\Lambda^2 B^*) \otimes F$ by the
+formula
+\begin{equation} \label{eq:curvature-def}
+\begin{aligned}
+  R_{a'a}^c[g](x,z)
+  &:= \frac{\partial}{\partial x^{a'}} g^c_a(x,z)
+    + g^{c'}_{a'}(x,z) \frac{\partial}{\partial z^{c'}} g^c_a(x,z) \\
+  & ~~{} - \frac{\partial}{\partial x^{a}} g^c_{a'}(x,z)
+    - g^{c'}_{a}(x,z) \frac{\partial}{\partial z^{c'}} g^c_{a'}(x,z) .
+\end{aligned}
+\end{equation}
+\end{definition}
+
 \begin{lemma} \label{lem:loc-init-split}
 \uses{def:invol,lem:op-frame}
 For the operators $L_i$ from Def.~\ref{def:invol}, given $x_0 \in M$, there exists
@@ -103,8 +120,10 @@ and (e) $[L'_{i'}, L'_{j'}] = 0$, for $i',j'=1,\ldots,r$, which expressed in ter
   \frac{\partial}{\partial y^{i'}} f_{j'}^j
     + \sum_{k=1}^{m-r} f_{i'}^k \frac{\partial}{\partial z^k} f_{j'}^j
   = \frac{\partial}{\partial y^{j'}} f_{i'}^j
-    + \sum_{k=1}^{m-r} f_{j'}^k \frac{\partial}{\partial z^k} f_{i'}^j .
+    + \sum_{k=1}^{m-r} f_{j'}^k \frac{\partial}{\partial z^k} f_{i'}^j ,
 \]
+which is obviously the same as the \emph{zero-curvature}
+(Def.~\ref{def:curvature}) condition $R_{i'j'}^j[f] = 0$.
 \end{lemma}
 \begin{proof}
 Start with the coordinates $(x^1,\ldots,x^m)$ on $U$ and consider the coordinate
@@ -278,6 +297,118 @@ Z^j}{\partial_z^k}\right|_{z=0} = \delta^j_k$ ensures that $Z^j(y,z)$ is an
 immersion (has non-singular jacobian) on a neighborhood of $(y,z)=(0,0)$ and
 hence a diffeomorphism on a possibly smaller neighborhood (use inverse function
 theorem).
+\end{proof}
+
+[[The idea now is to rewrite the proof of Lem.~\ref{lem:eq-radial} to just refer
+to a more abstract result (local existence of "parallel sections with respect to a connection")
+to be formulated in Lem.~\ref{lem:eq-parallel-section}, whose proof will repeat the logic
+of the current proof of Lem.~\ref{lem:eq-radial} in a bit more generality.]]
+
+\begin{lemma} \label{lem:eq-parallel-section}
+Consider two (finite-dimensional?) vector spaces $B$, and $F$, a smooth function
+$g\colon B \times F \to B^* \otimes F$, with $B^*$ the linear dual of $B$. Then consider
+the \emph{parallel section} initial value problem
+\begin{equation} \label{eq:parallel-section}
+  \frac{\partial}{\partial x^a} w^c(x,z) = g^c_a(x, w(x,z)) ,
+\end{equation}
+where $(x^a)$ and $(z^c)$ respectively are (standard) coordinates respectively on
+$B$ and $F$,
+with $w^c(0,z) = z^c$,
+and the $y$-parametrized family of radial ODEs initial value problems
+\begin{equation} \label{eq:radial-parallel-section}
+  \frac{\partial}{\partial t} \zeta^c(t,y,z) = y^a g_a^c(t y, \zeta(t,y,z)) .
+\end{equation}
+with $\zeta^c(0,y,z) = z^c$. The desired solutions $w\colon U \subseteq B
+\times F \to F$ and $\zeta\colon [0,1] \times U' \subset \mathbb{R} \times B
+\times F \to F$ should be jointly smooth.
+
+(a) If a solution $w^c(x,z)$ of~\eqref{eq:parallel-section} exists on $(0,0) \in
+U \subseteq B\times F$, then the zero-curvature (Def.~\ref{def:curvature})
+condition $R_{a'a}^c[g] = 0$ holds on some neighborhood $(0,0) \in U' \subseteq
+U$ and $\zeta^c(t,y,z) = w^c(ty, z)$ is a solution
+of~\eqref{eq:radial-parallel-section} on $[1,-1]\times U \subseteq \mathbb{R}
+\times B \times F$.
+
+(b) If, on a neighborhood $(0,0) \in U \subseteq B \times F$, the zero-curvature
+(Def.~\ref{def:curvature}) condition $R_{a'a}^c[g] = 0$ is satisfied, there
+exists a solution $\zeta^c(t,y,z)$ on $[0,1] \times U \subseteq \mathbb{R}
+\times B \times F$, and the family of ODE initial value problems
+\begin{equation}
+  \frac{\partial}{\partial t} \eta_a^c(t,y,z)
+  = \left. \eta_a^{c'}(t,y,z) y^{a'} \frac{\partial}{\partial z^{c'}} g_{a'}^c(ty,z) \right|_{z=\zeta(t,y,z)}
+\end{equation}
+has $\eta_a^c(t,y,z) = 0$ as its unique solution on $[0,1]\times U'$ for some
+neighborhood of $(0,0) \in U' \subseteq U$, then the following equation holds on
+$[0,1]\times U'$:
+\begin{equation}
+  \frac{\partial}{\partial y^a} \zeta^c(t,y,z) - t g_a^c(ty, \zeta(t,y,z)) = 0 .
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+(a) If the solution $w^c(x,z)$ exists on a neighborhood of $(x,z)=(0,0)$, then
+differentiating the equation~\eqref{eq:parallel-section} with respect to
+$x^{a'}$ and anti-symmetrizing ($a \leftrightarrow a'$) annihilates the
+left-hand side, while the eliminating $\frac{\partial}{\partial x^{a'}}
+v^c(y,x)$ using~\eqref{eq:parallel-section} itself directly gives the desired
+zero-curvature identity $R_{a'a}^c(0,z) = 0$. By the initial condition $w^c(0,z)
+= z^c$, $w$ is submersion at $(x,z)=(0,0)$ and hence also on some neighborhood
+$V$ (Lem?: submersion is an open condition). Choose a possibly smaller
+neighborhood $U'_B \times U'_F$ such that $\forall x\in U_B, 0 \in w(x, U'_F)$
+and $\exists 0 \in U'_{F,x} \subset U'_F \wedge x \in U'_{B,x} \subset U'_B$
+such that $\forall x'\in U'_{B,x} w(x',-)^{-1}\colon U'_{F,x} \to w^{-1}(x',
+U'_{F,x})$ is a diffeomorphism. Then the same argument can be repeated in the
+neighborhood $U'_{B,x} \times U'_{F,x}$ of $(x,0)$ to get $R_{a'a}^c(x,z) = 0$,
+thus covering some smaller neighborhood $U'$ of $(0,0)$.
+
+The remaining implication about the solution of~\eqref{eq:radial-parallel-section} follows
+from the calculation
+\begin{align*}
+  \frac{\partial}{\partial t} \zeta^c(t,y,z)
+  &= \frac{\partial}{\partial t} w^c(ty,z)
+  \\
+  &= y^{a'} \left.\frac{\partial}{\partial x^{a'}} w^c(x,z) \right|_{x=ty}
+  \\
+  &= y^{a'} \left.g_{a'}^c(x,w(x,z)) \right|_{x=ty}
+  \\
+  &= y^{a'} g_{a'}^c(ty,w(ty,z))
+  = y^{a'} g_{a'}^c(ty, \zeta(t,y,z)) .
+\end{align*}
+
+(b) [[adapt the argument currently in Lem.~\ref{lem:eq-radial}]]
+
+%%% ignore the rest here
+%In the simple direction, if local solutions exist on $U$, then differentiating the
+%equation~\eqref{eq:parallel-section} with respect to $x^{a'}$ and anti-symmetrizing
+%($a \leftrightarrow a'$) annihilates the left-hand side, while the eliminating
+%$\frac{\partial}{\partial x^{a'}} v^c(y,x)$ using~\eqref{eq:parallel-section} itself directly
+%gives the desired identity~\eqref{eq:zero-curvature}.
+%
+%In the resverse direction, we need to define a candidate local solution family
+%$w^c(y,x,z)$ and verify that it satisfies the desired conditions (a--d)
+%provided the zero-curvature condition (e) $R_{a'a}^c(y,x,z) = 0$ holds.
+%
+%Let us define the following family of ODEs parametrized by $(y,z) \in U'
+%\subseteq B \times F$, obtained by contracting both sides
+%of~\eqref{eq:parallel-section} with $y^a$ while replacing $y^a
+%\frac{\partial}{\partial x^a}$ with $\frac{\partial}{\partial t}$ and $v^c(x)$
+%with $\zeta^c(t,y,z)$:
+%\begin{equation} \label{eq:radial-parallel-section}
+%  \frac{\partial}{\partial t} \zeta^c(t,y,z) = y^a g_a^c(t y, \zeta(t,y,z)) .
+%\end{equation}
+%let $\zeta^c(t,y,z)$ be the solution of the initial above value problem with
+%$\zeta^c(0,y,z) = z^c$, which by Lemma~\ref{lem:eq-radial-exists} exists on some
+%neighborhood of $[-1,1] \times U$ of $(0,0,0)$ for some sub-neighborhood $U
+%\subseteq U'$, is unique and jointly smooth in all variables. Then the candidate
+%local solution is defined by $w^c(y,z) = \zeta^c(1,y,z)$, which is obviously (c)
+%jointly smooth and by construction satisfies (d) $w^c(0,z) = \zeta^c(1,0,z) =
+%z^c$.
+%
+%Now we need to check that $w^c(y,z)$ indeed solves~\eqref{eq:parallel-section}.
+%Incidentally, if the desired local solution family exists, then the
+%corresponding solution to the ODE initial value problem is given by
+%$\zeta^c(t,y,z) = w^c(ty,z)$.
+
 \end{proof}
 
 \begin{lemma} \label{lem:eq-radial-exists}
