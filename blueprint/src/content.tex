@@ -42,7 +42,7 @@ operators $L'_{i'}$, namely satisfying $[L'_{i'}, L'_{j'}] = 0$
 (Lem.~\ref{lem:loc-init-split}(e)) and having a form adapted to a split local
 coordinate system $(y,z)$ around $x_0$. The equations $L'_{i'} u = 0$ and $L_i u
 = 0$ are equivalent (Lem.~\ref{lem:op-frame}, \ref{lem:eq-frame-equiv}).
-Lem.~\ref{lem:eq-radial} shows that there exists a new local coordinate system
+Lem.~\ref{lem:eq-Z-exists} shows that there exists a new local coordinate system
 $(y,\bar{Z})$ on a neighborhood of $x_0$, where $\bar{Z}^k=\bar{Z}^k(y,z)$,
 which is better adapted to our differential equations. Lem.~\ref{lem:eq-loc-inv}
 actually shows that the contructed coordinates give us the desired solutions via
@@ -182,13 +182,13 @@ inversion identity $\bar{Z}^k(y, Z(y, z)) = z^k$, for all $z$ on a sufficiently
 small neighborhood of $z=0$, and for all $y$ on a sufficiently small
 neighborhood of $y=0$. Suppose that $Z^j(y,z)$ satisfies (a) $Z^j(0,z) = z^j$
 and (b)
-\[
-  \frac{\partial Z^j}{\partial y^{i'}}(y,z) = f_{i'}^j(y, Z^j(y,z)) .
-\]
+\begin{equation} \label{eq:parallel-Z}
+  \frac{\partial Z^j}{\partial y^{i'}}(y,z) = f_{i'}^j(y, Z(y,z)) .
+\end{equation}
 Then
-\[
-  L'_{i'} \bar{Z}(y,z) = 0, \quad i'=1,\ldots,r ,
-\]
+\begin{equation} \label{eq:lie-const-Z}
+  L'_{i'} \bar{Z}^j(y,z) = 0, \quad i'=1,\ldots,r ,
+\end{equation}
 and vice versa.
 \end{lemma}
 \begin{proof}
@@ -221,88 +221,18 @@ Hence, if one side of the equality vanishes, then so does the other, which
 proves the desired equivalence.
 \end{proof}
 
-\begin{lemma} \label{lem:eq-radial}
-\uses{lem:eq-loc-inv, lem:loc-init-split, lem:eq-radial-exists}
-Let $Z^j(y,z)$ be as in Lem.~\ref{lem:eq-loc-inv}. Then, $\zeta^j(t,y,z) =
-Z^j(ty,z)$ satisfies $\zeta^j(0,y,z) = z^j$ and the equations
-\[
-  \frac{\partial}{\partial t} \zeta^j(t,y,z) = y^{i'} f_{i'}^j(ty,\zeta(t,y,z)) .
-\]
-Conversely, if $\zeta^j(t,y,z)$ satisfies the initial value problem above, then
-there exists a sufficiently small neighborhood of $(y,z)=(0,0)$ for which
-$Z^j(ty,z)$ exists up to at least $t=1$. Then $Z^j(y,z) = \zeta^j(1,y,z)$
-satisfies the conditions in the hypotheses of Lem.~\ref{lem:eq-loc-inv}.
+\begin{lemma} \label{lem:eq-Z-exists}
+\uses{lem:eq-loc-inv, lem:loc-init-split, lem:eq-parallel-section, lem:eq-radial-exists}
+Let $Z^j(y,z)$ be as in Lem.~\ref{lem:eq-loc-inv}. Then, there exists a solution
+$Z^j(y,z)$ of~\eqref{eq:parallel-Z} defined on a sufficiently small neighborhood
+of $(y,z) = (0,0)$, where it is jointly smooth and satisfies the conditions in
+the hypotheses of Lem.~\ref{lem:eq-loc-inv}.
 \end{lemma}
 \begin{proof}
-The easy direction is proved by the following computation:
-\begin{align*}
-  \frac{\partial}{\partial t} \zeta^j(t,y,z)
-  &= \frac{\partial}{\partial t} Z^j(ty,z)
-  \\
-  &= y^{i'} \left.\frac{\partial Z^j}{\partial y'^{i'}}(y',z) \right|_{y'=ty}
-  \\
-  &= y^{i'} \left.f_{i'}^j(y',Z^j(y',z)) \right|_{y'=ty}
-  \\
-  &= y^{i'} f_{i'}^j(ty,Z(ty,z))
-  = y^{i'} f_{i'}^j(ty, \zeta(t,y,z)) .
-\end{align*}
-
-For the converse direction, consider the following computation, where we use the
-ODE satisfied by $\zeta^j(t,y,z)$ and the identity from Lem.~\ref{lem:loc-init-split}(f):
-\begin{align*}
-  \frac{\partial}{\partial t} \left(\frac{\partial}{\partial y^{i'}} \zeta^j(t,y,z) - t f_{i'}^j(ty, \zeta(t,y,z))\right)
-  &= \frac{\partial}{\partial y^{i'}} \frac{\partial}{\partial t} \zeta^j(t,y,z)
-    \\ &\quad{}
-    - f_{i'}^j(ty, \zeta(t,y,z))
-    - \left.t y^{j'} \frac{\partial}{\partial y'^{j'}} f_{i'}^{j}(y', \zeta(t,y,z))\right|_{y'=ty}
-    - t \left(\frac{\partial}{\partial t} \zeta^k(t,y,z)\right) \left.\frac{\partial}{\partial z'^k} f_{i'}^j(ty, z')\right|_{z'=\zeta(t,y,z)}
-  \\
-  &= \frac{\partial}{\partial y^{i'}} \left(y^{j'} f_{j'}^j(ty, \zeta(t,y,z))\right)
-    \\ &\quad{}
-    - f_{i'}^j(ty, \zeta(t,y,z))
-    - t y^{j'} \left. \frac{\partial}{\partial y'^{j'}} f_{i'}^{j}(y', z')\right|_{y'=ty, z'=\zeta(t,y,z)}
-    - t y^{j'} \left. f_{j'}^k(y',z') \frac{\partial}{\partial z'^k} f_{i'}^j(y', z')\right|_{y'=ty, z'=\zeta(t,y,z)}
-  \\
-  &= \left.\left(f_{i'}^{j}(y', z')
-      + t y^{j'} \frac{\partial}{\partial y'^{i'}} f_{j'}^j(y', z')
-      + \left(\frac{\partial}{\partial y^{i'}} \zeta^k(t,y,z)\right) y^{j'} \frac{\partial}{\partial z'^k} f_{j'}^j(y', z')
-    \right)\right|_{y'=ty, z'=\zeta(t,y,z)}
-    \\ &\quad{}
-    - \left.\left(
-      f_{i'}^j(y', z')
-      + t y^{j'} \frac{\partial}{\partial y'^{i'}} f_{j'}^{j}(y', z')
-      + t y^{j'} f_{i'}^k(y',z') \frac{\partial}{\partial z'^k} f_{j'}^j(y', z')
-    \right)\right|_{y'=ty, z'=\zeta(t,y,z)}
-  \\
-  &= \left(\frac{\partial}{\partial y^{i'}} \zeta^k(t,y,z) - t f_{i'}^k(ty, \zeta(t,y,z))\right)
-    \left. y^{j'} \frac{\partial}{\partial z'^k} f_{j'}^j(y', z')\right|_{y'=ty, z'=\zeta(t,y,z)}
-\end{align*}
-Hence, we find that $\eta(t,y,z) = \frac{\partial}{\partial y^{i'}}
-\zeta^k(t,y,z) - t f_{i'}^k(ty, \zeta(t,y,z))$ satisfies a linear ODE. Hence, by
-the uniqueness of ODE solutions (Lem.~\ref{lem:eq-radial-exists}(b)), if the
-initial condition $\eta(0,y,z) = 0$ is satisfied, the solution must identically
-vanish, $\eta(t,y,z) = 0$, which upon setting $t=1$ proves that $Z^j(y,z) =
-\zeta^j(1,y,z)$ satisfies the desired differential equation, (Lem.~\ref{lem:eq-radial-exists}(c)). It
-remains to check the vanishing initial condition:
-\begin{align*}
-  \eta(0,y,z)
-  &= \frac{\partial}{\partial y^{i'}} \zeta^j(0,y,z) - 0 \cdot f_{i'}^j(0 \zeta(0,y,z))
-  \\
-  &= \frac{\partial}{\partial y^{i'}} z^j - 0 = 0 .
-\end{align*}
-The proof is completed by noting that the inverse function $\bar{Z}(y,z)$ exists
-on a sufficiently small neighborhood of $(y,z)=(0,0)$, because the continuity of
-$\frac{\partial Z^j}{\partial z^k}$ and the property that $\left.\frac{\partial
-Z^j}{\partial_z^k}\right|_{z=0} = \delta^j_k$ ensures that $Z^j(y,z)$ is an
-immersion (has non-singular jacobian) on a neighborhood of $(y,z)=(0,0)$ and
-hence a diffeomorphism on a possibly smaller neighborhood (use inverse function
-theorem).
+The result follows immediately by combining the existence result
+from~Lem.~\ref{lem:eq-radial-exists} and the zero-curvature condition of
+Lem.~\ref{lem:loc-init-split(f)} with Lem.~\ref{lem:eq-parallel-section}(b).
 \end{proof}
-
-[[The idea now is to rewrite the proof of Lem.~\ref{lem:eq-radial} to just refer
-to a more abstract result (local existence of "parallel sections with respect to a connection")
-to be formulated in Lem.~\ref{lem:eq-parallel-section}, whose proof will repeat the logic
-of the current proof of Lem.~\ref{lem:eq-radial} in a bit more generality.]]
 
 \begin{lemma} \label{lem:eq-parallel-section}
 Consider two (finite-dimensional?) vector spaces $B$, and $F$, a smooth function
@@ -333,15 +263,15 @@ of~\eqref{eq:radial-parallel-section} on $[1,-1]\times U \subseteq \mathbb{R}
 (Def.~\ref{def:curvature}) condition $R_{a'a}^c[g] = 0$ is satisfied, there
 exists a solution $\zeta^c(t,y,z)$ on $[0,1] \times U \subseteq \mathbb{R}
 \times B \times F$, and the family of ODE initial value problems
-\begin{equation}
+\begin{equation} \label{eq:parallel-eq-ode}
   \frac{\partial}{\partial t} \eta_a^c(t,y,z)
   = \left. \eta_a^{c'}(t,y,z) y^{a'} \frac{\partial}{\partial z^{c'}} g_{a'}^c(ty,z) \right|_{z=\zeta(t,y,z)}
 \end{equation}
 has $\eta_a^c(t,y,z) = 0$ as its unique solution on $[0,1]\times U'$ for some
 neighborhood of $(0,0) \in U' \subseteq U$, then the following equation holds on
 $[0,1]\times U'$:
-\begin{equation}
-  \frac{\partial}{\partial y^a} \zeta^c(t,y,z) - t g_a^c(ty, \zeta(t,y,z)) = 0 .
+\begin{equation} \label{eq:parallel-eq-t}
+  \frac{\partial}{\partial x^a} \zeta^c(t,x,z) - t g_a^c(tx, \zeta(t,x,z)) = 0 .
 \end{equation}
 \end{lemma}
 
@@ -361,8 +291,8 @@ U'_{F,x})$ is a diffeomorphism. Then the same argument can be repeated in the
 neighborhood $U'_{B,x} \times U'_{F,x}$ of $(x,0)$ to get $R_{a'a}^c(x,z) = 0$,
 thus covering some smaller neighborhood $U'$ of $(0,0)$.
 
-The remaining implication about the solution of~\eqref{eq:radial-parallel-section} follows
-from the calculation
+The remaining implication about $\zeta^c(t,y,z)$
+solving~\eqref{eq:radial-parallel-section} follows from the calculation
 \begin{align*}
   \frac{\partial}{\partial t} \zeta^c(t,y,z)
   &= \frac{\partial}{\partial t} w^c(ty,z)
@@ -375,49 +305,68 @@ from the calculation
   = y^{a'} g_{a'}^c(ty, \zeta(t,y,z)) .
 \end{align*}
 
-(b) [[adapt the argument currently in Lem.~\ref{lem:eq-radial}]]
-
-%%% ignore the rest here
-%In the simple direction, if local solutions exist on $U$, then differentiating the
-%equation~\eqref{eq:parallel-section} with respect to $x^{a'}$ and anti-symmetrizing
-%($a \leftrightarrow a'$) annihilates the left-hand side, while the eliminating
-%$\frac{\partial}{\partial x^{a'}} v^c(y,x)$ using~\eqref{eq:parallel-section} itself directly
-%gives the desired identity~\eqref{eq:zero-curvature}.
-%
-%In the resverse direction, we need to define a candidate local solution family
-%$w^c(y,x,z)$ and verify that it satisfies the desired conditions (a--d)
-%provided the zero-curvature condition (e) $R_{a'a}^c(y,x,z) = 0$ holds.
-%
-%Let us define the following family of ODEs parametrized by $(y,z) \in U'
-%\subseteq B \times F$, obtained by contracting both sides
-%of~\eqref{eq:parallel-section} with $y^a$ while replacing $y^a
-%\frac{\partial}{\partial x^a}$ with $\frac{\partial}{\partial t}$ and $v^c(x)$
-%with $\zeta^c(t,y,z)$:
-%\begin{equation} \label{eq:radial-parallel-section}
-%  \frac{\partial}{\partial t} \zeta^c(t,y,z) = y^a g_a^c(t y, \zeta(t,y,z)) .
-%\end{equation}
-%let $\zeta^c(t,y,z)$ be the solution of the initial above value problem with
-%$\zeta^c(0,y,z) = z^c$, which by Lemma~\ref{lem:eq-radial-exists} exists on some
-%neighborhood of $[-1,1] \times U$ of $(0,0,0)$ for some sub-neighborhood $U
-%\subseteq U'$, is unique and jointly smooth in all variables. Then the candidate
-%local solution is defined by $w^c(y,z) = \zeta^c(1,y,z)$, which is obviously (c)
-%jointly smooth and by construction satisfies (d) $w^c(0,z) = \zeta^c(1,0,z) =
-%z^c$.
-%
-%Now we need to check that $w^c(y,z)$ indeed solves~\eqref{eq:parallel-section}.
-%Incidentally, if the desired local solution family exists, then the
-%corresponding solution to the ODE initial value problem is given by
-%$\zeta^c(t,y,z) = w^c(ty,z)$.
+(b) By the ODE existence theorem (Lem~\ref{lem:eq-radial-exists}) there exists a
+jointly smooth family of solutions $\zeta^c(t,y,z)$ of the initial value
+problem~\eqref{eq:radial-parallel-section}. Then define
+\[
+  \eta^c_a(t,x,z) = \frac{\partial}{\partial x^a} \zeta^c(t,x,z) - t g_a^c(tx, \zeta(t,x,z))
+\]
+Next, the following calculation finds an ODE satisfied by $\eta_a^c(t,x,z)$:
+\begin{align*}
+  \frac{\partial}{\partial t} \eta_a^c(t,x,z)
+  &= \frac{\partial}{\partial t} \left(\frac{\partial}{\partial x^{a}} \zeta^c(t,x,z) - t g_a^c(tx, \zeta(t,x,z))\right)
+  \\
+  &= \frac{\partial}{\partial x^a} \frac{\partial}{\partial t} \zeta^c(t,x,z)
+    \\ &\quad{}
+    - g_a^c(tx, \zeta(t,x,z))
+    - \left.t x^b \frac{\partial}{\partial x'^b} g_a^c(x', \zeta(t,x,z))\right|_{x'=tx}
+    - t \left(\frac{\partial}{\partial t} \zeta^d(t,x,z)\right) \left.\frac{\partial}{\partial z'^d} g_a^c(tx, z')\right|_{z'=\zeta(t,x,z)}
+  \\
+  &= \frac{\partial}{\partial x^a} \left(x^b g_b^c(tx, \zeta(t,x,z))\right)
+    \\ &\quad{}
+    - g_a^j(tx, \zeta(t,x,z))
+    - t x^b \left. \frac{\partial}{\partial x'^b} g_a^c(x', z')\right|_{x'=tx, z'=\zeta(t,x,z)}
+    - t x^b \left. g_b^d(x',z') \frac{\partial}{\partial z'^d} g_a^c(x', z')\right|_{x'=tx, z'=\zeta(t,x,z)}
+  \\
+  &= \left.\left(g_a^c(x', z')
+      + t x^b \frac{\partial}{\partial x'^a} g_b^c(x', z')
+      + \left(\frac{\partial}{\partial x^a} \zeta^d(t,x,z)\right) x^b \frac{\partial}{\partial z'^d} g_b^c(x', z')
+    \right)\right|_{x'=tx, z'=\zeta(t,x,z)}
+    \\ &\quad{}
+    - \left.\left(
+      g_a^c(x', z')
+      + t x^b \frac{\partial}{\partial x'^a} g_b^c(x', z')
+      + t x^b g_a^d(x',z') \frac{\partial}{\partial z'^d} g_b^j(x', z')
+      + t x^b R_{ba}^c[g](x',z')
+    \right)\right|_{x'=tx, z'=\zeta(t,x,z)}
+  \\
+  &= \left(\frac{\partial}{\partial x^a} \zeta^d(t,x,z) - t g_a^d(tx, \zeta(t,x,z))\right)
+    \left. x^b \frac{\partial}{\partial z'^d} g_b^c(x', z')\right|_{x'=tx, z'=\zeta(t,x,z)}
+    + t x^b R_{ba}^c[g](tx, \zeta(t,x,y))
+  \\
+  &= \eta_a^d(t,x,z)
+    \left. x^b \frac{\partial}{\partial z'^d} g_b^c(x', z')\right|_{x'=tx, z'=\zeta(t,x,z)}
+    + t x^b R_{ba}^c[g](tx, \zeta(t,x,y)) .
+\end{align*}
+Using the hypothesis $R_{ba}^c[g] = 0$ on a given domain, we obtain the
+ODE~\eqref{eq:parallel-eq-ode} on the same domain. Checking the initial condition,
+\[
+  \eta_a^c(0,x,z)
+  = \frac{\partial}{\partial x^a} \zeta^c(0,x,z)
+  = \frac{\partial}{\partial x^a} z^c = 0 .
+\]
+So the hypothesis about the uniqueness of the solutions of the initial value
+problem~\eqref{eq:parallel-eq-ode}, we must find the agreement $\eta_a^c(t,x,y) = 0$.
+[[check the domains where the last few equations hold]]
 
 \end{proof}
 
 \begin{lemma} \label{lem:eq-radial-exists}
-An ODE initial value problem (a sufficiently general one to cover the one for
-$\zeta^j(t,y,z)$ in Lem.~\ref{lem:eq-radial} and the one for
-$\eta_{i'}^j(t,y,z)$ in the proof of Lem.~\ref{lem:eq-radial}) (a) has a
-solution that is jointly smooth in $(t,y,z)$, which (b) is unique, and (c)
-exists (at least) up to time $t=1$ on a sufficiently small neighborhood of
-$(y,z) = (0,0)$.
+An ODE initial value problem (a sufficiently general one to cover the existence
+for $\zeta^c(t,y,z)$ and the uniqueness of $\eta_{a}^c(t,y,z)$ in
+Lem.~\ref{lem:eq-parallel-section}) (a) has a solution that is jointly smooth in
+$(t,y,z)$, which (b) is unique, and (c) exists (at least) up to time $t=1$ on a
+sufficiently small neighborhood of $(y,z) = (0,0)$.
 \end{lemma}
 \begin{proof}
 This should follow from the Picard-Lindel\"of ODE existence and uniqueness
