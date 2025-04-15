@@ -173,13 +173,13 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   exact hdf_eq.symm
 
 
--- TODO: The hypotheses are too strong.
--- Should be solutions in just one direction.
---
 lemma unique_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
-  (hdf : TotalFderivCompat f) {x0 : B} {y : F} {s : Set B} {hs : s ∈ nhds x0} {v1 v2 : B → F} (v1_smooth : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v1 (interior s)) (v2_smooth : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v2 (interior s)) (v1_init : v1 x0 = y) (v2_init : v2 x0 = y) (v1_sol : ∀ x ∈ s, (fderivWithin ℝ v1 (interior s)) x = f (x, v1 x)) (v2_sol : ∀ x ∈ s, (fderivWithin ℝ v2 (interior s)) x = f (x, v2 x))
-  : ∀ x ∈ s, v1 x = v2 x
+  (hdf : TotalFderivCompat f) {x0 : B} {y : F} {s : Set B}
+  {hs : s ∈ nhds x0} {v : B → F}
+  (v_init : v x0 = y)
+  (v_sol : ∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))
+  : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)
   := sorry
 
 
@@ -210,14 +210,24 @@ lemma deriv_to_partial
 
     exact (Asymptotics.IsBigO.trans_isLittleO norm_littleo_sup hd)
 
--- Probably need to assume differentiability
---
+
 lemma deriv_arg_swap
   (v : ℝ → BoundedContinuousFunction B F)
-  (x : B) {t : ℝ} (ht : t ∈ Set.Ico (-1) 1)
+  (x : B) {t : ℝ} (ht : t ∈ Set.Icc (-1) 1)
+  {v' : BoundedContinuousFunction B F}
+  (hd : HasDerivWithinAt v v' (Set.Icc (-1) 1) t)
   : derivWithin v (Set.Icc (-1) 1) t x = derivWithin (fun s => v s x) (Set.Icc (-1) 1) t
   := by
-    sorry
+    have hd' := deriv_to_partial hd x
+    rw [hd.derivWithin]
+    swap
+    apply uniqueDiffOn_Icc
+    linarith
+    exact ht
+    rw [hd'.derivWithin]
+    apply uniqueDiffOn_Icc
+    linarith
+    exact ht
 
 -- a try at proving the local existence theorem
 omit v in
@@ -253,7 +263,8 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
   --  (fun t ht => HasDerivWithinAt.derivWithin
   --    (hxs := (uniqueDiffOn_Icc (by norm_num : -1 < (1:ℝ))).uniqueDiffWithinAt ht))
   --  hv'
-  replace hv' := fun t (ht : t ∈ _) => -- rewrite HasDerivWithinAt as equality
+
+  have v'_deriv_eq := fun t (ht : t ∈ _) => -- rewrite HasDerivWithinAt as equality
     HasDerivWithinAt.derivWithin
       (hv' t ht)
       (hxs := (uniqueDiffOn_Icc (by norm_num : -1 < (1:ℝ))).uniqueDiffWithinAt ht)
@@ -279,7 +290,7 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
     -- check initial condition from hv'y ?
     -- maybe need to do more, like get explicit constant solution for (x-x0)=0?
     have congr_bcf {a b : BtoF} (_ : a = b) : ∀ x, a.toFun x = b.toFun x := sorry
-    have ex4 := fun t (ht : t ∈ _) => congr_bcf (hv' t ht)
+    have ex4 := fun t (ht : t ∈ _) => congr_bcf (v'_deriv_eq t ht)
     -- XXX: why is there no `ball_forall_swap`?
     replace ex4 := forall_swap.mp (fun t => imp_forall_iff.mp (ex4 t))
     unfold ff at ex4
@@ -287,11 +298,14 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
     simp only [ContinuousMap.toFun_eq_coe, BoundedContinuousFunction.coe_toContinuousMap] at ex4
     replace ex4 := ex4 x0
     simp only [sub_self, smul_zero, add_zero, and_imp, map_zero] at ex4
-    have ex5 := fun t (ht : t ∈ Set.Ico (-1) 1) => ex4 t (Set.mem_Icc_of_Ico ht)
+    have ex5 := fun t (ht : t ∈ Set.Icc (-1) 1) => ex4 t ht
 
-    have ex6 := fun t (ht : _) => (deriv_arg_swap v' x0 ht) ▸ ex5 t ht
-    have ex7:= constant_of_derivWithin_zero  ?v'diff ex6
-    case v'diff => sorry -- See `deriv_arg_swap`, this may require an extra assumption.
+    have ex6 := fun t (ht : t ∈ Set.Icc (-1) 1) => (deriv_arg_swap v' x0 ht (hv' t ht)) ▸ ex5 t ht
+    have ex7 := constant_of_derivWithin_zero  ?v'diff (by
+      intro t ht
+      exact (ex6 t (Set.mem_Icc_of_Ico ht))
+      )
+    case v'diff => sorry
     have := calc
       v' 1 x0 = v' (-1:ℝ) x0 := by exact ex7 1 (by norm_num)
       _       = v' 0 x0 := by exact (ex7 0 (by norm_num)).symm
