@@ -43,13 +43,26 @@ local instance : oNormedSpace (B × F) (dimB + dimF) := by
 noncomputable local instance : oNormedSpace (B →L[ℝ] F) (dimB * dimF) := by
   constructor
 
+local instance : oNormedSpace ℝ 1 := by
+  constructor
+
+local instance : oNormedSpace (BoundedContinuousFunction B F) (dimB * dimF) := by
+  sorry
+
+local instance : oNormedSpace ((BoundedContinuousFunction B F) → (BoundedContinuousFunction B F)) (dimB * dimF * dimB * dimF) := by
+  sorry
+
 abbrev minSmoothness_nat_le_inf {n : ℕ} : minSmoothness ℝ n ≤ ∞ := by
   rw [minSmoothness_of_isRCLikeNormedField]
   exact ENat.LEInfty.out
 
-abbrev TotalFderivCompat (f : B × F → B →L[ℝ] F) := ∀ x y d1 d2,
+
+abbrev Curvature (f : B × F → B →L[ℝ] F) x y d1 d2 :=
   (fderiv ℝ f (x, y) (d1, 0) d2 + (fderiv ℝ f (x, y)) (0, f (x, y) d1) d2
-  = fderiv ℝ f (x, y) (d2, 0) d1 + (fderiv ℝ f (x, y)) (0, f (x, y) d2) d1)
+  - (fderiv ℝ f (x, y) (d2, 0) d1 + (fderiv ℝ f (x, y)) (0, f (x, y) d2) d1))
+
+abbrev TotalFderivCompat (f : B × F → B →L[ℝ] F) :=
+  ∀ x y d1 d2, Curvature f x y d1 d2 = 0
 
 theorem fderiv_compat_of_eq' {f : B × F → B →L[ℝ] F}
       (hv : SmoothFunction (dimB := dimB) (dimF := dimF) v)
@@ -104,6 +117,8 @@ theorem fderiv_compat_of_eq {f : B × F → B →L[ℝ] F}
     simp only [Prod.mk_add_mk, add_zero, zero_add]
   replace hdf_eq := d1_add ▸ d2_add ▸ hdf_eq
   simp only [hf_eq, comp_def, hy, map_add, ContinuousLinearMap.add_apply] at hdf_eq
+  unfold Curvature
+  rw [sub_eq_zero]
   exact hdf_eq.symm
 
 -- Existence of a local solution v of fderiv ℝ v x = f (x, v x)) with arbitrary
@@ -168,19 +183,24 @@ theorem fderiv_compat_of_eqOn {f : B × F → B →L[ℝ] F}
   replace hdf_eq := d1_add ▸ d2_add ▸ hdf_eq
   simp only [hf_eq, comp_def, hy, map_add, ContinuousLinearMap.add_apply] at hdf_eq
   rw [hf_eq hx0i, comp_apply, hy] at hdf_eq
-  simp only [fderiv_def]
-  -- after simplifying the chain rule we have the exact result
+  rw [← fderiv_def] at hdf_eq
+  unfold Curvature
+  rw [sub_eq_zero]
   exact hdf_eq.symm
 
 
-lemma unique_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
-  (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
-  (hdf : TotalFderivCompat f) {x0 : B} {y : F} {s : Set B}
-  {hs : s ∈ nhds x0} {v : B → F}
-  (v_init : v x0 = y)
-  (v_sol : ∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))
-  : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)
-  := sorry
+-- BLACKBOX FOR NOW
+--
+-- lemma smooth_picard_lindelof {f : B × F → B →L[ℝ] F}
+--   (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
+--   (hdf : TotalFderivCompat f) {x0 : B} {y : F} {s : Set B}
+--   {hs : s ∈ nhds x0}
+--   (D : Set ℝ)
+--   : ∃ v : ℝ × B → F,
+--     v (0, x0) = y
+--   ∧ (∀ x ∈ s, ∀ t ∈ D, HasFDerivWithinAt (fun t => v (t, x)) (fun t => f (x, v (t, x))) D t)
+--   ∧ SmoothFunctionOn (dimB := 1+dimB) (dimF := dimF) v (interior (s × D))
+--   := sorry
 
 
 lemma deriv_to_partial
@@ -231,28 +251,46 @@ lemma deriv_arg_swap
 
 -- a try at proving the local existence theorem
 omit v in
-theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
-  (hf : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) f)
-  (hdf : TotalFderivCompat f) :
-      ∀ (x0 : B) (y : F), ∃ (s : Set B) (_hs : s ∈ nhds x0) (v : B → F)
-      (_hv : SmoothFunctionOn (dimB := dimB) (dimF := dimF) v (interior s)),
-        v x0 = y ∧ (∀ x ∈ s, (fderivWithin ℝ v (interior s)) x = f (x, v x))
+theorem exists_sol_of_fderiv_compat {g : B × F → B →L[ℝ] F}
+  (g_smooth : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) g)
+  (g_compat : TotalFderivCompat g) :
+      ∀ (x0 : B) (z : F), ∃ (s : Set B) (hs : s ∈ nhds x0) (w : B → F)
+      (w_smooth : SmoothFunctionOn (dimB := dimB) (dimF := dimF) w (interior s)),
+        w x0 = z ∧ (∀ x ∈ s, (fderivWithin ℝ w (interior s)) x = g (x, w x))
     := by
   intro x0 y
   -- use Picard-Lindelöf here
   -- set up candidate solution by integrating radially from x0
-  have ex1 := fun (z : F → ℝ → F) x t => deriv (z y) t = (f (x0 + t • (x-x0), z y t)) x
+  have ex1 := fun (z : F → ℝ → F) x t => deriv (z y) t = (g (x0 + t • (x-x0), z y t)) x
   have ex2 := fun (v : B → F) (z : F → ℝ → F) (x : B) t => z y t = v (x0 + t • (x-x0))
   --let BtoF := B →ᵇ F -- XXX: →ᵇ notation not working for some reason
   let BtoF := BoundedContinuousFunction B F
-  let ff (t' : ℝ) (y' : BtoF) : BtoF := by
-    --unfold BtoF
-    constructor; swap
-    · constructor; swap
-      · exact fun (x : B) => (f (x0 + t' • (x-x0), y' x)) (x-x0)
+  let radial_g : ℝ → BtoF → BtoF := by
+    intro t' y'
+    constructor
+    case toContinuousMap := by
+      constructor
+      case toFun := fun (x : B) => (g (x0 + t' • (x-x0), y' x)) (x-x0)
       sorry
+    case map_bounded' := sorry
+
+  have radial_g_smooth : SmoothFunction (dimB := 1) (dimF := dimB*dimF*dimB*dimF) radial_g := by
     sorry
-  have hpl : IsPicardLindelof ff (-1) 0 1 (.const _ y) ?L ?R ?C := sorry
+
+  have radial_g_lipschitz :=
+    ContDiffAt.exists_lipschitzOnWith (by
+      unfold SmoothFunction at radial_g_smooth
+      rw [contDiff_iff_contDiffAt] at radial_g_smooth
+      have diff_at_0 := radial_g_smooth 0
+      apply (ContDiffAt.of_le diff_at_0)
+      norm_num
+    )
+
+  have hpl : IsPicardLindelof radial_g (-1) 0 1 (.const _ y) ?L ?R ?C := by
+    -- constructor
+    -- norm_num
+    -- case hR := sorry
+    sorry
   case L => sorry
   case R => sorry
   case C => sorry
@@ -293,7 +331,7 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
     have ex4 := fun t (ht : t ∈ _) => congr_bcf (v'_deriv_eq t ht)
     -- XXX: why is there no `ball_forall_swap`?
     replace ex4 := forall_swap.mp (fun t => imp_forall_iff.mp (ex4 t))
-    unfold ff at ex4
+    unfold radial_g at ex4
     --simp only [ContinuousMap.toFun_eq_coe, BoundedContinuousFunction.coe_toContinuousMap, zero_smul, add_zero] at ex4
     simp only [ContinuousMap.toFun_eq_coe, BoundedContinuousFunction.coe_toContinuousMap] at ex4
     replace ex4 := ex4 x0
@@ -312,7 +350,14 @@ theorem exists_sol_of_fderiv_compat {f : B × F → B →L[ℝ] F}
       _       = y := by rw [hv'y]; simp only [BoundedContinuousFunction.const_apply]
     convert this
   case right =>
-    -- need a special argument here
+    intro x hx
+    unfold radial_g at v'_deriv_eq
+    have v'_deriv_at_1 := v'_deriv_eq 1 (by norm_num)
+    have v'_deriv_swap := (deriv_arg_swap v' x (by norm_num) (hv' 1 (by norm_num)))
+    simp at v'_deriv_at_1
+
+    -- TODO: figure out how to coerce the RHS of v'_deriv_at_1 to a function
+    -- apply fderiv_eq_smul_deriv at v'_deriv_at_1
     sorry
 
 #check BoundedContinuousFunction
