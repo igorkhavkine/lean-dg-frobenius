@@ -2,6 +2,8 @@ import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Prod
 import Mathlib.Topology.ContinuousMap.Bounded.Basic
 
+-- import Utils
+
 noncomputable section FrobLoc
 
 open Classical Function ContDiff
@@ -40,6 +42,9 @@ variable {w : B → F}
 local instance : oNormedSpace (B × F) (dimB + dimF) := by
   constructor
 
+local instance : oNormedSpace (ℝ × B × F) (1 + dimB + dimF) := by
+  constructor
+
 noncomputable local instance : oNormedSpace (B →L[ℝ] F) (dimB * dimF) := by
   constructor
 
@@ -47,7 +52,7 @@ local instance : oNormedSpace ℝ 1 := by
   constructor
 
 local instance : oNormedSpace (BoundedContinuousFunction B F) (dimB * dimF) := by
-  sorry
+  sorry -- XXX: check how to fulfill instance
 
 local instance : oNormedSpace ((BoundedContinuousFunction B F) → (BoundedContinuousFunction B F)) (dimB * dimF * dimB * dimF) := by
   sorry
@@ -235,10 +240,10 @@ lemma deriv_to_partial
 
 lemma deriv_arg_swap
   (v : ℝ → BoundedContinuousFunction B F)
-  (x : B) {t : ℝ} (ht : t ∈ Set.Icc (-1) 1)
+  (x : B) {t : ℝ} {a b : ℝ} (lt : a < b) (ht : t ∈ Set.Icc a b)
   {ζ : BoundedContinuousFunction B F}
-  (hd : HasDerivWithinAt v ζ (Set.Icc (-1) 1) t)
-  : derivWithin v (Set.Icc (-1) 1) t x = derivWithin (fun s => v s x) (Set.Icc (-1) 1) t
+  (hd : HasDerivWithinAt v ζ (Set.Icc a b) t)
+  : derivWithin v (Set.Icc a b) t x = derivWithin (fun s => v s x) (Set.Icc a b) t
   := by
     have hd' := deriv_to_partial hd x
     rw [hd.derivWithin]
@@ -340,7 +345,7 @@ theorem exists_sol_of_fderiv_compat {g : B × F → B →L[ℝ] F}
     simp only [sub_self, smul_zero, add_zero, and_imp, map_zero] at ex4
     have ex5 := fun t (ht : t ∈ Set.Icc (-1) 1) => ex4 t ht
 
-    have ex6 := fun t (ht : t ∈ Set.Icc (-1) 1) => (deriv_arg_swap ζ x0 ht (hζ t ht)) ▸ ex5 t ht
+    have ex6 := fun t (ht : t ∈ Set.Icc (-1) 1) => (deriv_arg_swap ζ x0 (by linarith) ht (hζ t ht)) ▸ ex5 t ht
     have ex7 := constant_of_derivWithin_zero  ?ζdiff (by
       intro t ht
       exact (ex6 t (Set.mem_Icc_of_Ico ht))
@@ -383,33 +388,80 @@ theorem exists_sol_of_fderiv_compat {g : B × F → B →L[ℝ] F}
     sorry
 
 
+lemma η_unique
+  {η : ℝ × B × F → B →L[ℝ] F} {g : B × F → B →L[ℝ] F} {U : Set (B × F)} {p0 : B × F} (hp0 : p0 ∈ U)
+  {ζ : ℝ × B × F → F}
+  (ζ_init : ∀ y z, ζ (0, y, z) = z)
+  (ζ_eq : ∀ t ∈ (Set.Icc 0 1), ∀ p ∈ U, HasDerivWithinAt (fun s => ζ (s, p)) (g (p0.1 + t • (p.1 - p0.1), ζ (t, p)) p.1) (Set.Icc (0:ℝ) 1) t)
+  (η_init : ∀ x ∈ U, η (0, x) = 0)
+  (η_eq : ∀ t ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, HasDerivWithinAt (fun s => η (s, q) b) (fderiv ℝ (fun z' => g (p0.1 + t • (q.1-p0.1), z') q.1) (ζ (t, q)) (η (t, q) b)) (Set.Icc 0 1) t)
+  : ∀ t ∈ (Set.Icc 0 1), ∀ x ∈ U, η (t,x) = 0
+  := by
+    intro t ht x hx
+    replace ⟨y,z⟩ := x
+    sorry
+
+lemma exchange_deriv
+   {f : ℝ × B → F} (f_smooth : SmoothFunction (dimB := 1+dimB) (dimF := dimF) f)
+   {U : Set B} {V : Set ℝ} {q : B} {r : ℝ} (hq : q ∈ U) (hr : r ∈ V)
+  : derivWithin (fun s => (fderivWithin ℝ (fun x => f (s, x)) U q)) V r = fderivWithin ℝ (fun x => derivWithin (fun s => f (s, x)) V r) U q
+  := by sorry
+
+
 lemma Lemma9b
   {g : B × F → B →L[ℝ] F} {U : Set (B × F)} {p0 : B × F} (hp0 : p0 ∈ U)
   (g_smooth : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) g)
   (g_compat : TotalFderivCompat g U)
   {ζ : ℝ × B × F → F}
   (ζ_init : ∀ y z, ζ (0, y, z) = z)
-  (ζ_eq : ∀ t ∈ (Set.Icc (0:ℝ) 1), ∀ p ∈ U, HasDerivWithinAt (fun s => ζ (s, p)) (g (p0.1 + t • (p.1 - p0.1), ζ (t, p)) p.1) (Set.Icc (0:ℝ) 1) t)
-  {U' : Set (B × F)}
-  (hU' : U' ⊆ U)
-  (η_eq : (η : ℝ × B × F → B →L[ℝ] F) → (∀ t ∈ (Set.Icc 0 1), ∀ q ∈ U', ∀ b, HasDerivWithinAt (fun s => η (s, q) b) (fderiv ℝ (fun z' => g (p0.1 + t • (q.1-p0.1), z') q.1) (ζ (t, q)) (η (t, q) b)) (Set.Icc 0 1) t) → ∀ t ∈ (Set.Icc 0 1), ∀ x ∈ U', (η (t,x) = 0))
-  : ∀ t ∈ Set.Icc 0 1, ∀ p ∈ U', fderivWithin ℝ (fun y => ζ (t, y, p.snd)) (Prod.fst '' U') p.1 = t • g (p0.1 + t • (p.1-p0.1), ζ (t, p)) := by
+  (ζ_eq : ∀ t ∈ (Set.Icc 0 1), ∀ p ∈ U, HasDerivWithinAt (fun s => ζ (s, p)) (g (p0.1 + t • (p.1 - p0.1), ζ (t, p)) p.1) (Set.Icc (0:ℝ) 1) t)
+  : ∀ t ∈ Set.Icc 0 1, ∀ p ∈ U, fderivWithin ℝ (fun y => ζ (t, y, p.snd)) (Prod.fst '' U) p.1 = t • g (p0.1 + t • (p.1-p0.1), ζ (t, p)) := by
     intro t ht p hp
 
     let η : ℝ × B × F → B →L[ℝ] F := by
       intro ⟨t, y, z⟩
-      exact (fderivWithin ℝ (fun x => ζ (t, x, z)) (Prod.fst '' U') y) - t • g (p0.1 + t • (y - p0.1), ζ (t, y, z))
+      exact (fderivWithin ℝ (fun x => ζ (t, x, z)) (Prod.fst '' U) y) - t • g (p0.1 + t • (y - p0.1), ζ (t, y, z))
 
-    have η_deriv_eq : (∀ r ∈ (Set.Icc 0 1), ∀ q ∈ U', ∀ b, derivWithin (fun s => η (s, q) b) (Set.Icc 0 1) r = (fderiv ℝ (fun z' => g (p0.1 + r • (q.1-p0.1), z') q.1) (ζ (r, q)) (η (r, q) b)))
+    have η_smooth : SmoothFunction (dimB := 1+dimB+dimF) (dimF := dimB*dimF) η
+      := sorry
+
+    have η_deriv_eq : (∀ r ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, derivWithin (fun s => η (s, q) b) (Set.Icc 0 1) r = (fderiv ℝ (fun z' => g (p0.1 + r • (q.1-p0.1), z') q.1) (ζ (r, q)) (η (r, q) b)))
       := by
         intro r hr q hq b
 
+        -- Not using `calc` here because it's verbose to type out all the derivatives.
+        --
+        unfold η
+        simp
+        rw [
+          derivWithin_sub (by sorry) (by sorry),
+          derivWithin_smul (by exact differentiableWithinAt_id') (by sorry),
+          derivWithin_id' _ _ (uniqueDiffOn_Icc_zero_one.uniqueDiffWithinAt hr)
+          ]
+        simp
+
+        have hq1 : q.1 ∈ Prod.fst '' U := by
+          simp
+          use q.2
+
+        have : SmoothFunction (dimB := 1+dimB) (dimF := dimF) (fun (p: ℝ × B) => ζ (p.1, p.2, q.2)) := by
+          sorry
+
+        rw [fderiv_to_fst, exchange_deriv this hq1 hr]
+
+        -- calc
+        --   derivWithin (fun s ↦ (η (s, q)) b) (Set.Icc 0 1) r = derivWithin (fun s => (fderivWithin ℝ (fun x ↦ ζ (s, x, q.2)) (Prod.fst '' U) q.1) b - s • (g (p0.1 + s • (q.1 - p0.1), ζ (s, q))) b) (Set.Icc 0 1) r
+        --     := by unfold η; simp
+        --   _ =  := by rw [derivWithin_sub]
         sorry
 
-    have η_diff : ∀ r ∈ Set.Icc 0 1, ∀ q ∈ U', ∀ b, ∃ η', HasDerivWithinAt (fun s => η (s, q) b) η' (Set.Icc 0 1) r
-      := by sorry
+    have η_diff : ∀ r ∈ Set.Icc 0 1, ∀ q ∈ U, ∀ b, ∃ η', HasDerivWithinAt (fun s => η (s, q) b) η' (Set.Icc 0 1) r
+      := by
+        intro r hr q hq b
+        --
+        sorry
 
-    have η_ode : ∀ t ∈ (Set.Icc 0 1), ∀ q ∈ U', ∀ b, HasDerivWithinAt (fun s => η (s, q) b) (fderiv ℝ (fun z' => g (p0.1 + t • (q.1-p0.1), z') q.1) (ζ (t, q)) (η (t, q) b)) (Set.Icc 0 1) t := by
+    have η_ode : ∀ t ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, HasDerivWithinAt (fun s => η (s, q) b) (fderiv ℝ (fun z' => g (p0.1 + t • (q.1-p0.1), z') q.1) (ζ (t, q)) (η (t, q) b)) (Set.Icc 0 1) t := by
       intro t ht q hq b
       have ⟨η', hη'⟩ := η_diff t ht q hq b
       have deriv_1 := (hη'.derivWithin (uniqueDiffOn_Icc_zero_one t ht)).symm
@@ -418,16 +470,15 @@ lemma Lemma9b
       rw [this] at hη'
       exact hη'
 
-    -- FIXME: is this needed?
-    --
-    have η_init : ∀ y z, η (0, y, z) = 0 := by
-      intro y z
+    have η_init : ∀ x ∈ U, η (0, x) = 0 := by
+      intro x hx
+      replace ⟨y,z⟩ := x
       unfold η
       simp
       simp only [ζ_init]
       exact fderivWithin_const_apply z
 
-    have := η_eq η η_ode t ht p hp
+    have := η_unique hp0 ζ_init ζ_eq η_init η_ode t ht p hp
     unfold η at this
     simp at this
     rw [sub_eq_iff_eq_add, zero_add] at this
