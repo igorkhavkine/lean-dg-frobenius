@@ -2,7 +2,7 @@ import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Prod
 import Mathlib.Topology.ContinuousMap.Bounded.Basic
 
--- import Utils
+import Frobenius.Utils
 
 noncomputable section FrobLoc
 
@@ -420,10 +420,19 @@ lemma Lemma9b
 
     let η : ℝ × B × F → B →L[ℝ] F := by
       intro ⟨t, y, z⟩
+      -- Injection instead of partial diff
+      --
       exact (fderivWithin ℝ (fun x => ζ (t, x, z)) (Prod.fst '' U) y) - t • g (p0.1 + t • (y - p0.1), ζ (t, y, z))
 
-    have η_smooth : SmoothFunction (dimB := 1+dimB+dimF) (dimF := dimB*dimF) η
-      := sorry
+    have η_smooth : SmoothFunctionOn (dimB := 1+dimB+dimF) (dimF := dimB*dimF) η ((Set.Icc 0 1).prod U)
+      := by
+      apply ContDiffOn.sub
+      case hf := by
+        have uniq : UniqueDiffOn ℝ ((Set.Icc (0:ℝ) 1).prod U) := sorry
+        have hmn : ∞ + 1 ≤ ∞ := by rfl
+        apply contDiffOn_fderivWithin_apply (sorry) uniq hmn
+      case hg := by
+        sorry
 
     have η_deriv_eq : (∀ r ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, derivWithin (fun s => η (s, q) b) (Set.Icc 0 1) r = (fderiv ℝ (fun z' => g (p0.1 + r • (q.1-p0.1), z') q.1) (ζ (r, q)) (η (r, q) b)))
       := by
@@ -447,7 +456,8 @@ lemma Lemma9b
         have : SmoothFunction (dimB := 1+dimB) (dimF := dimF) (fun (p: ℝ × B) => ζ (p.1, p.2, q.2)) := by
           sorry
 
-        rw [fderiv_to_fst, exchange_deriv this hq1 hr]
+        apply fderiv_to_fst
+        rw [exchange_deriv this hq1 hr]
 
         -- calc
         --   derivWithin (fun s ↦ (η (s, q)) b) (Set.Icc 0 1) r = derivWithin (fun s => (fderivWithin ℝ (fun x ↦ ζ (s, x, q.2)) (Prod.fst '' U) q.1) b - s • (g (p0.1 + s • (q.1 - p0.1), ζ (s, q))) b) (Set.Icc 0 1) r
