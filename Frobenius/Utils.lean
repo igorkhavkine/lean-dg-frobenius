@@ -9,9 +9,9 @@ variable
 theorem fderiv_to_fst
   {f : A × B → C} {U : Set A} {V : Set B} {x : A × B} {f' : A × B →L[𝕜] C}
   (hx : x ∈ (U ×ˢ V)) (hf : HasFDerivWithinAt f f' (U ×ˢ V) x)
-  : HasFDerivWithinAt (fun a => f (a, x.2)) (f'.comp (ContinuousLinearMap.inl 𝕜 A B)) U x.1
+  : HasFDerivWithinAt (f ⟨·, x.2⟩) (f'.comp (ContinuousLinearMap.inl 𝕜 A B)) U x.1
   := by
-    have : (fun a => f (a, x.2)) = f ∘ ((ContinuousMap.id A).prodMk (ContinuousMap.const A x.2))
+    have : (f ⟨·, x.2⟩) = f ∘ ((ContinuousMap.id A).prodMk (ContinuousMap.const A x.2))
       := by rfl
     rw [this]
     have hg : HasFDerivWithinAt ((ContinuousMap.id A).prodMk (ContinuousMap.const A x.2)) (ContinuousLinearMap.inl 𝕜 A B) U x.1 := by
@@ -32,6 +32,8 @@ theorem fderiv_to_fst
 end
 
 section PicardLindelof -- Assume we have the machinery from the PR #21777.
+
+-- PR#25304 - cont partials => total deriv
 
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {f : ℝ → E → E} {tmin tmax : ℝ} {t₀ : Set.Icc tmin tmax} {x₀ : E} {a r L K : NNReal}

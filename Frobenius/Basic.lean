@@ -52,7 +52,7 @@ local instance : oNormedSpace ℝ 1 := by
   constructor
 
 local instance : oNormedSpace (BoundedContinuousFunction B F) (dimB * dimF) := by
-  sorry -- XXX: check how to fulfill instance
+  sorry
 
 local instance : oNormedSpace ((BoundedContinuousFunction B F) → (BoundedContinuousFunction B F)) (dimB * dimF * dimB * dimF) := by
   sorry
@@ -409,7 +409,7 @@ lemma exchange_deriv
 
 
 lemma Lemma9b
-  {g : B × F → B →L[ℝ] F} {U : Set (B × F)} {p0 : B × F} (hp0 : p0 ∈ U)
+  {g : B × F → B →L[ℝ] F} {U : Set (B × F)} {p0 : B × F} (U_open : IsOpen U) (hp0 : p0 ∈ U)
   (g_smooth : SmoothFunction (dimB := dimB + dimF) (dimF := dimB * dimF) g)
   (g_compat : TotalFderivCompat g U)
   {ζ : ℝ × B × F → F}
@@ -418,21 +418,59 @@ lemma Lemma9b
   : ∀ t ∈ Set.Icc 0 1, ∀ p ∈ U, fderivWithin ℝ (fun y => ζ (t, y, p.snd)) (Prod.fst '' U) p.1 = t • g (p0.1 + t • (p.1-p0.1), ζ (t, p)) := by
     intro t ht p hp
 
+    have ζ_smooth : SmoothFunctionOn (dimB := 1+dimB+dimF) (dimF := dimF) ζ ((Set.Icc 0 1) ×ˢ U) := by
+      sorry
+
     let η : ℝ × B × F → B →L[ℝ] F := by
       intro ⟨t, y, z⟩
-      -- Injection instead of partial diff
-      --
       exact (fderivWithin ℝ (fun x => ζ (t, x, z)) (Prod.fst '' U) y) - t • g (p0.1 + t • (y - p0.1), ζ (t, y, z))
 
-    have η_smooth : SmoothFunctionOn (dimB := 1+dimB+dimF) (dimF := dimB*dimF) η ((Set.Icc 0 1).prod U)
+    have η_smooth : ∀ b, SmoothFunctionOn (dimB := 1+dimB+dimF) (dimF := dimF) (η · b) ((Set.Icc 0 1) ×ˢ U)
       := by
+      intro b
       apply ContDiffOn.sub
       case hf := by
-        have uniq : UniqueDiffOn ℝ ((Set.Icc (0:ℝ) 1).prod U) := sorry
-        have hmn : ∞ + 1 ≤ ∞ := by rfl
-        apply contDiffOn_fderivWithin_apply (sorry) uniq hmn
-      case hg := by
+        apply ContDiffOn.clm_apply
         sorry
+        apply contDiffOn_const
+      case hg := by
+        -- Arithmetic
+        apply ContDiffOn.smul
+        apply contDiffOn_fst
+        apply ContDiffOn.clm_apply
+        apply ContDiffOn.comp
+        -- g
+        rw [contDiffOn_univ]
+        exact g_smooth
+        -- g's argument
+        apply ContDiffOn.prodMk
+        apply ContDiffOn.add
+        apply contDiffOn_const
+        apply ContDiffOn.smul
+        apply contDiffOn_fst
+        apply ContDiffOn.sub
+        apply ContDiffOn.fst
+        apply contDiffOn_snd
+        apply contDiffOn_const
+        apply ContDiffOn.comp
+        -- ζ
+        exact ζ_smooth
+        -- ζ's argument
+        apply ContDiffOn.prodMk
+        apply contDiffOn_fst
+        apply ContDiffOn.prodMk
+        apply ContDiffOn.fst
+        apply contDiffOn_snd
+        apply ContDiffOn.snd
+        apply contDiffOn_snd
+        -- images in compositions
+        apply (Set.MapsTo.prodMap
+          (f₁ := fun y => y) (s₁ := Set.Icc 0 1) (t₁ := Set.Icc 0 1)
+          (f₂ := fun y => (y.1, y.2)) (s₂ := U) (t₂ := U))
+        apply Set.mapsTo_id
+        apply Set.mapsTo_id
+        apply Set.mapsTo_univ
+        apply contDiffOn_const
 
     have η_deriv_eq : (∀ r ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, derivWithin (fun s => η (s, q) b) (Set.Icc 0 1) r = (fderiv ℝ (fun z' => g (p0.1 + r • (q.1-p0.1), z') q.1) (ζ (r, q)) (η (r, q) b)))
       := by
@@ -443,35 +481,89 @@ lemma Lemma9b
         unfold η
         simp
         rw [
-          derivWithin_sub (by sorry) (by sorry),
-          derivWithin_smul (by exact differentiableWithinAt_id') (by sorry),
+          derivWithin_sub _ _,
+          derivWithin_smul (by exact differentiableWithinAt_id'),
           derivWithin_id' _ _ (uniqueDiffOn_Icc_zero_one.uniqueDiffWithinAt hr)
           ]
         simp
 
-        have hq1 : q.1 ∈ Prod.fst '' U := by
-          simp
-          use q.2
+        swap
+        apply ContDiffOn.differentiableOn
+        apply ContDiffOn.clm_apply
+        apply ContDiffOn.comp
+        rw [contDiffOn_univ]
+        exact g_smooth
+        apply ContDiffOn.prodMk
+        apply ContDiffOn.add
+        apply contDiffOn_const
+        apply ContDiffOn.smul
+        apply contDiffOn_id
+        apply contDiffOn_const
+        apply ContDiffOn.comp
+        exact ζ_smooth
+        apply ContDiffOn.prodMk
+        apply contDiffOn_id
+        apply contDiffOn_const
+        -- MapsTo
+        unfold Set.MapsTo
+        intro x hx
+        simp
+        constructor
+        exact hx
+        exact hq
+        apply Set.mapsTo_univ
+        apply contDiffOn_const
+        norm_num
+        exact hr
+        swap
+        -- ζ diff'ability
+        apply ContDiffOn.differentiableOn
+        apply ContDiffOn.clm_apply
+        sorry
+        apply contDiffOn_const
+        sorry
+        exact hr
+        sorry
+        swap
+        -- g diff'ability
+        apply ContDiffOn.differentiableOn
+        apply ContDiffOn.smul
+        apply contDiffOn_id
+        apply ContDiffOn.clm_apply
+        apply ContDiffOn.comp
+        rw [contDiffOn_univ]
+        exact g_smooth
+        apply ContDiffOn.prodMk
+        apply ContDiffOn.add
+        apply contDiffOn_const
+        apply ContDiffOn.smul
+        apply contDiffOn_id
+        apply contDiffOn_const
+        apply ContDiffOn.comp
+        exact ζ_smooth
+        apply ContDiffOn.prodMk
+        apply contDiffOn_id
+        apply contDiffOn_const
+        unfold Set.MapsTo
+        intro x hx
+        simp
+        constructor
+        exact hx
+        exact hq
+        apply Set.mapsTo_univ
+        apply contDiffOn_const
+        norm_num
+        exact hr
 
-        have : SmoothFunction (dimB := 1+dimB) (dimF := dimF) (fun (p: ℝ × B) => ζ (p.1, p.2, q.2)) := by
-          sorry
-
-        apply fderiv_to_fst
-        rw [exchange_deriv this hq1 hr]
-
-        -- calc
-        --   derivWithin (fun s ↦ (η (s, q)) b) (Set.Icc 0 1) r = derivWithin (fun s => (fderivWithin ℝ (fun x ↦ ζ (s, x, q.2)) (Prod.fst '' U) q.1) b - s • (g (p0.1 + s • (q.1 - p0.1), ζ (s, q))) b) (Set.Icc 0 1) r
-        --     := by unfold η; simp
-        --   _ =  := by rw [derivWithin_sub]
         sorry
 
-    have η_diff : ∀ r ∈ Set.Icc 0 1, ∀ q ∈ U, ∀ b, ∃ η', HasDerivWithinAt (fun s => η (s, q) b) η' (Set.Icc 0 1) r
+    have η_diff : ∀ r ∈ Set.Icc 0 1, ∀ q ∈ U, ∀ b, ∃ η', HasDerivWithinAt (η ⟨·, q⟩ b) η' (Set.Icc 0 1) r
       := by
         intro r hr q hq b
         --
         sorry
 
-    have η_ode : ∀ t ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, HasDerivWithinAt (fun s => η (s, q) b) (fderiv ℝ (fun z' => g (p0.1 + t • (q.1-p0.1), z') q.1) (ζ (t, q)) (η (t, q) b)) (Set.Icc 0 1) t := by
+    have η_ode : ∀ t ∈ (Set.Icc 0 1), ∀ q ∈ U, ∀ b, HasDerivWithinAt (η ⟨·, q⟩ b) (fderiv ℝ (g ⟨p0.1 + t • (q.1-p0.1), ·⟩ q.1) (ζ (t, q)) (η (t, q) b)) (Set.Icc 0 1) t := by
       intro t ht q hq b
       have ⟨η', hη'⟩ := η_diff t ht q hq b
       have deriv_1 := (hη'.derivWithin (uniqueDiffOn_Icc_zero_one t ht)).symm
