@@ -408,6 +408,8 @@ lemma exchange_deriv
   : ∀ b, derivWithin (fun s => fderivWithin ℝ (fun x => f (s, x)) U q b) V r = fderivWithin ℝ (fun x => derivWithin (fun s => f (s, x)) V r) U q b
   := by sorry
 
+-- use this if @[fun_prop] attribute is not included for some theorem in Mathlib
+attribute [fun_prop] ContDiffOn.comp
 
 lemma Lemma9b
   {g : B × F → B →L[ℝ] F} {sb : Set B} {sf : Set F} {y0 : B}
@@ -436,43 +438,14 @@ lemma Lemma9b
         sorry
         apply contDiffOn_const
       case hg := by
-        -- Arithmetic
-        apply ContDiffOn.smul
-        apply contDiffOn_fst
-        apply ContDiffOn.clm_apply
-        apply ContDiffOn.comp
-        -- g
-        rw [contDiffOn_univ]
-        exact g_smooth
-        -- g's argument
-        apply ContDiffOn.prodMk
-        apply ContDiffOn.add
-        apply contDiffOn_const
-        apply ContDiffOn.smul
-        apply contDiffOn_fst
-        apply ContDiffOn.sub
-        apply ContDiffOn.fst
-        apply contDiffOn_snd
-        apply contDiffOn_const
-        apply ContDiffOn.comp
-        -- ζ
-        exact ζ_smooth
-        -- ζ's argument
-        apply ContDiffOn.prodMk
-        apply contDiffOn_fst
-        apply ContDiffOn.prodMk
-        apply ContDiffOn.fst
-        apply contDiffOn_snd
-        apply ContDiffOn.snd
-        apply contDiffOn_snd
-        -- images in compositions
-        apply (Set.MapsTo.prodMap
-          (f₁ := fun y => y) (s₁ := Set.Icc 0 1) (t₁ := Set.Icc 0 1)
-          (f₂ := fun y => (y.1, y.2)) (s₂ := sb ×ˢ sf) (t₂ := sb ×ˢ sf))
-        apply Set.mapsTo_id
-        apply Set.mapsTo_id
-        apply Set.mapsTo_univ
-        apply contDiffOn_const
+        unfold SmoothFunction at g_smooth
+        unfold SmoothFunctionOn at ζ_smooth
+        -- the next two lines don't work, but provide debug information
+        --set_option trace.Meta.Tactic.fun_prop true in
+        --fun_prop
+        apply ContDiffOn.clm_apply -- fun_prop only had a problem with this top level
+        · fun_prop --remaining differentiability goals handled automatically
+        · fun_prop
 
     have η_deriv_eq : (∀ r ∈ (Set.Icc 0 1), ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, derivWithin (fun s => η (s, y, z) b) (Set.Icc 0 1) r = (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z') y) (ζ (r, y, z)) (η (r, y, z) b)))
       := by
