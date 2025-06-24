@@ -395,7 +395,7 @@ lemma η_unique
   (ζ_init : ∀ y z, ζ (0, y, z) = z)
   (ζ_eq : ∀ t ∈ (Set.Icc 0 1), ∀ y ∈ U, ∀ z ∈ V, HasDerivWithinAt (fun s => ζ (s, y, z)) (g (y0 + t • (y - y0), ζ (t, y, z)) y) (Set.Icc (0:ℝ) 1) t)
   (η_init : ∀ y ∈ U, ∀ z ∈ V, η (0, y, z) = 0)
-  (η_eq : ∀ t ∈ (Set.Icc 0 1), ∀ y ∈ U, ∀ z ∈ V, ∀ b, HasDerivWithinAt (fun s => η (s, y, z) b) (fderiv ℝ (fun z' => g (y0 + t • (y-y0), z') y) (ζ (t, y, z)) (η (t, y, z) b)) (Set.Icc 0 1) t)
+  (η_eq : ∀ ε > 0, ∀ t ∈ (Set.Icc 0 1), ∀ y ∈ U, ∀ z ∈ V, ∀ b, HasDerivWithinAt (fun s => η (s, y, z) b) (fderiv ℝ (fun z' => g (y0 + t • (y-y0), z') y) (ζ (t, y, z)) (η (t, y, z) b)) (Set.Icc (-ε) (1+ε)) t)
   : ∀ t ∈ (Set.Icc 0 1), ∀ y ∈ U, ∀ z ∈ V, η (t, y, z) = 0
   := by
     intro t ht y hy z hz
@@ -447,130 +447,177 @@ lemma Lemma9b
         · fun_prop --remaining differentiability goals handled automatically
         · fun_prop
 
-    have η_deriv_eq : (∀ r ∈ (Set.Icc 0 1), ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, derivWithin (fun s => η (s, y, z) b) (Set.Icc 0 1) r = (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z') y) (ζ (r, y, z)) (η (r, y, z) b)))
+    have η_deriv_eq : ∀ ε > 0, ∀ r ∈ (Set.Icc 0 1), ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, derivWithin (fun s => η (s, y, z) b) (Set.Icc (-ε) (1+ε)) r = (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z') y) (ζ (r, y, z)) (η (r, y, z) b))
       := by
-        intro r hr y hy z hz b
+        intro ε hε r hr y hy z hz b
 
-        -- Not using `calc` here because it's verbose to type out all the derivatives.
-        --
-        unfold η
-        simp
-        rw [
-          derivWithin_sub _ _,
-          derivWithin_smul (by exact differentiableWithinAt_id'),
-          derivWithin_id' _ _ (uniqueDiffOn_Icc_zero_one.uniqueDiffWithinAt hr)
-          ]
-        simp
-        rw [exchange_deriv (f := fun d => ζ (d.1, d.2, z)) _ _ hr]
-        simp
-        --
-        sorry
+        let shift (y : B) (s : ℝ) := y0 + s • (y - y0)
+        let ry := shift y r
 
-        apply ContDiffOn.comp
-        exact ζ_smooth
-        apply ContDiffOn.prodMk
-        apply contDiffOn_fst
-        apply ContDiffOn.prodMk
-        apply contDiffOn_snd
-        apply contDiffOn_const
+        unfold SmoothFunction at g_smooth
 
-        case st =>
-          unfold Set.MapsTo
-          intro x hx
-          replace ⟨a,b⟩ := x
-          simp at hx
-          simp
-          constructor
-          exact hx.left
-          constructor
-          exact hx.right
-          exact hz
-        exact hy
+        calc
+          derivWithin (fun s => (η (s, y, z)) b) (Set.Icc (-ε) (1+ε)) r = derivWithin (fun s => (fderivWithin ℝ (fun x => ζ ⟨s, x, z⟩) sb y) b - s • g ⟨shift y s, ζ ⟨s, y, z⟩⟩ b) (Set.Icc (-ε) (1+ε)) r
+            := by rfl
+          _ = fderivWithin ℝ (fun x => derivWithin (fun s => ζ ⟨s, x, z⟩) (Set.Icc (-ε) (1+ε)) r) sb y b
+            - (g ⟨ry, ζ ⟨r, y, z⟩⟩ b)
+            - (fderivWithin ℝ (fun x' => g ⟨x', ζ ⟨r, y, z⟩⟩ b) sb ry ry)
+            - (fderivWithin ℝ (fun z' => g ⟨ry, z'⟩ b) sf (ζ ⟨r, y, z⟩)) (r • derivWithin (fun s => ζ ⟨s, y, z⟩) (Set.Icc 0 1) r)
+            := by
+              rw [derivWithin_sub _ _, exchange_deriv (f := fun d => ζ ⟨d.1, d.2, z⟩) (by
+                unfold SmoothFunctionOn
+                unfold SmoothFunctionOn at ζ_smooth
+                apply ContDiffOn.comp
+                · exact ζ_smooth
+                · fun_prop
+                · unfold Set.MapsTo
+                  intro x hx
+                  replace ⟨a,b⟩ := x
+                  simp
+                  simp at hx
+                  exact ⟨hx.left, hx.right, hz⟩
+                ) hy hr]
+              rw [
+                sub_eq_add_neg, sub_sub, sub_sub,
+                sub_eq_add_neg ((fderivWithin ℝ (fun x ↦ derivWithin (fun s ↦ ζ (s, x, z)) (Set.Icc 0 1) r) sb y) b),
+                add_eq_add_left_iff, ← zero_sub, sub_eq_iff_eq_add
+              ]
+              simp only [derivWithin_smul,
+                derivWithin_id', one_smul, eq_neg_add_iff_add_eq, add_zero,
+                add_comm (b := (g (y0 + r • (y - y0), ζ (r, y, z))) b), add_eq_add_left_iff
+              ]
 
-        apply ContDiffOn.differentiableOn
-        apply ContDiffOn.clm_apply
-        apply ContDiffOn.comp
-        rw [contDiffOn_univ]
-        exact g_smooth
-        apply ContDiffOn.prodMk
-        apply ContDiffOn.add
-        apply contDiffOn_const
-        apply ContDiffOn.smul
-        apply contDiffOn_id
-        apply contDiffOn_const
-        apply ContDiffOn.comp
-        exact ζ_smooth
-        apply ContDiffOn.prodMk
-        apply contDiffOn_id
-        apply contDiffOn_const
-        -- MapsTo
-        unfold Set.MapsTo
-        intro x hx
-        simp
-        constructor
-        exact hx
-        exact ⟨hy, hz⟩
-        apply Set.mapsTo_univ
-        apply contDiffOn_const
-        norm_num
-        exact hr
-        -- ζ diff'ability
-        apply ContDiffOn.differentiableOn
-        apply ContDiffOn.clm_apply
-        sorry
-        apply contDiffOn_const
-        sorry
-        exact hr
-        sorry
-        -- g diff'ability
-        apply ContDiffOn.differentiableOn
-        apply ContDiffOn.smul
-        apply contDiffOn_id
-        apply ContDiffOn.clm_apply
-        apply ContDiffOn.comp
-        rw [contDiffOn_univ]
-        exact g_smooth
-        apply ContDiffOn.prodMk
-        apply ContDiffOn.add
-        apply contDiffOn_const
-        apply ContDiffOn.smul
-        apply contDiffOn_id
-        apply contDiffOn_const
-        apply ContDiffOn.comp
-        exact ζ_smooth
-        apply ContDiffOn.prodMk
-        apply contDiffOn_id
-        apply contDiffOn_const
-        unfold Set.MapsTo
-        intro x hx
-        simp
-        constructor
-        exact hx
-        exact ⟨hy, hz⟩
-        apply Set.mapsTo_univ
-        apply contDiffOn_const
-        norm_num
-        exact hr
+    --     · unfold SmoothFunctionOn
+    --       unfold SmoothFunctionOn at ζ_smooth
+    --       unfold SmoothFunctionOn at η_smooth
+    --       unfold SmoothFunction at g_smooth
+    --       fun_prop (disch:=assumption)
+    --     -- · apply ContDiffOn.comp
+    --     --   exact ζ_smooth
+    --     --   apply ContDiffOn.prodMk
+    --     --   apply contDiffOn_fst
+    --     --   apply ContDiffOn.prodMk
+    --     --   apply contDiffOn_snd
+    --     --   apply contDiffOn_const
 
-    have η_diff : ∀ r ∈ Set.Icc 0 1, ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, ∃ η', HasDerivWithinAt (η ⟨·, y, z⟩ b) η' (Set.Icc 0 1) r
+    --     --   · unfold Set.MapsTo
+    --     --     intro x hx
+    --     --     replace ⟨a,b⟩ := x
+    --     --     simp at hx
+    --     --     simp
+    --     --     constructor
+    --     --     exact hx.left
+    --     --     constructor
+    --     --     exact hx.right
+    --     --     exact hz
+
+    --     · exact hy
+
+    --     · --unfold SmoothFunctionOn
+    --       unfold SmoothFunctionOn at ζ_smooth
+    --       unfold SmoothFunctionOn at η_smooth
+    --       unfold SmoothFunction at g_smooth
+    --       have g_diff := g_smooth.differentiable (by norm_num)
+    --       have g_diff' := ((contDiffOn_univ.mpr g_smooth) ⟨y0 + r • (y - y0), ζ (r, y, z)⟩ (by simp)).differentiableWithinAt (by norm_num)
+    --       have ζ_diff := (ζ_smooth ⟨r, y, z⟩ (by simp; exact ⟨hr, hy, hz⟩)).differentiableWithinAt (by norm_num)
+    --       have : Set.MapsTo (fun x ↦ (x, y, z)) (Set.Icc 0 1) (Set.Icc 0 1 ×ˢ sb ×ˢ sf) := by
+    --         unfold Set.MapsTo
+    --         simp
+    --         intro x hx
+    --         exact ⟨hx, hy, hz⟩
+    --       fun_prop (disch:=exact this)--have := g_smooth.comp (ContDiffOn.prodMk _ (contDiffOn_univ.mpr ζ_smooth))
+    --     stop
+    --     apply ContDiffOn.differentiableOn
+    --     apply ContDiffOn.clm_apply
+    --     apply ContDiffOn.comp
+    --     rw [contDiffOn_univ]
+    --     exact g_smooth
+    --     apply ContDiffOn.prodMk
+    --     apply ContDiffOn.add
+    --     apply contDiffOn_const
+    --     apply ContDiffOn.smul
+    --     apply contDiffOn_id
+    --     apply contDiffOn_const
+    --     apply ContDiffOn.comp
+    --     exact ζ_smooth
+    --     apply ContDiffOn.prodMk
+    --     apply contDiffOn_id
+    --     apply contDiffOn_const
+    --     -- MapsTo
+    --     unfold Set.MapsTo
+    --     intro x hx
+    --     simp
+    --     constructor
+    --     exact hx
+    --     exact ⟨hy, hz⟩
+    --     apply Set.mapsTo_univ
+    --     apply contDiffOn_const
+    --     norm_num
+    --     exact hr
+    --     -- ζ diff'ability
+    --     apply ContDiffOn.differentiableOn
+    --     apply ContDiffOn.clm_apply
+    --     sorry
+    --     apply contDiffOn_const
+    --     sorry
+    --     exact hr
+    --     sorry
+    --     -- g diff'ability
+    --     apply ContDiffOn.differentiableOn
+    --     apply ContDiffOn.smul
+    --     apply contDiffOn_id
+    --     apply ContDiffOn.clm_apply
+    --     apply ContDiffOn.comp
+    --     rw [contDiffOn_univ]
+    --     exact g_smooth
+    --     apply ContDiffOn.prodMk
+    --     apply ContDiffOn.add
+    --     apply contDiffOn_const
+    --     apply ContDiffOn.smul
+    --     apply contDiffOn_id
+    --     apply contDiffOn_const
+    --     apply ContDiffOn.comp
+    --     exact ζ_smooth
+    --     apply ContDiffOn.prodMk
+    --     apply contDiffOn_id
+    --     apply contDiffOn_const
+    --     unfold Set.MapsTo
+    --     intro x hx
+    --     simp
+    --     constructor
+    --     exact hx
+    --     exact ⟨hy, hz⟩
+    --     apply Set.mapsTo_univ
+    --     apply contDiffOn_const
+    --     norm_num
+    --     exact hr
+
+    have η_diff : ∀ ε > 0, ∀ r ∈ Set.Icc 0 1, ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, ∃ η', HasDerivWithinAt (η ⟨·, y, z⟩ b) η' (Set.Icc (-ε) (1+ε)) r
       := by
-        intro r hr y hy z hz b
-        have : DifferentiableOn ℝ (η ⟨·, y, z⟩ b) (Set.Icc 0 1) := sorry
+        intro ε hε r hr y hy z hz b
+        have : DifferentiableOn ℝ (η ⟨·, y, z⟩ b) (Set.Icc (-ε) (1+ε)) := sorry
         have := this.hasDerivAt (by
-          apply (Icc_mem_nhds (a := 0) (b := 1) (x := r))
-          -- TODO: make r ∈ Set.Ioo (-ε) (1+ε) (probably)
-          --
-          exact hr.left
-          exact hr.right
-          )
+          apply Icc_mem_nhds (x := r)
+          simp at hr
+          · linarith
+          simp at hr -- This was forgotten by the ctx for some reason
+          · linarith
+        )
         use (deriv (fun x ↦ (η (x, y, z)) b) r)
         exact this.hasDerivWithinAt
 
-    have η_ode : ∀ t ∈ (Set.Icc 0 1), ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, HasDerivWithinAt (η ⟨·, y, z⟩ b) (fderiv ℝ (g ⟨y0 + t • (y-y0), ·⟩ y) (ζ (t, y, z)) (η (t, y, z) b)) (Set.Icc 0 1) t := by
-      intro t ht y hy z hz b
-      have ⟨η', hη'⟩ := η_diff t ht y hy z hz b
-      have deriv_1 := (hη'.derivWithin (uniqueDiffOn_Icc_zero_one t ht)).symm
-      have deriv_2 := η_deriv_eq t ht y hy z hz b
+    have η_ode : ∀ ε > 0, ∀ t ∈ (Set.Icc 0 1), ∀ y ∈ sb, ∀ z ∈ sf, ∀ b, HasDerivWithinAt (η ⟨·, y, z⟩ b) (fderiv ℝ (g ⟨y0 + t • (y-y0), ·⟩ y) (ζ (t, y, z)) (η (t, y, z) b)) (Set.Icc (-ε) (1+ε)) t := by
+      intro ε hε t ht y hy z hz b
+      have ⟨η', hη'⟩ := η_diff ε hε t ht y hy z hz b
+      have ε_lt : -ε < 1+ε := by linarith
+      have ht' : t ∈ Set.Icc (-ε) (1+ε) := by
+        simp at ht
+        simp
+        constructor
+        · linarith
+        · linarith
+      have deriv_1 := (hη'.derivWithin (uniqueDiffOn_Icc ε_lt t ht')).symm
+      have deriv_2 := η_deriv_eq ε hε t ht y hy z hz b
       have := deriv_1.trans deriv_2
       rw [this] at hη'
       exact hη'
