@@ -33,9 +33,6 @@ end
 
 section
 
-theorem add_eq_add_left_iff {G : Type*} [AddGroup G] {a b c : G} : a+b = a+c ↔ b = c := by simp
-theorem add_eq_add_right_iff {G : Type*} [AddGroup G] {a b c : G} : b+a = c+a ↔ b = c := by simp
-
 theorem fderivWithin_comp'_derivWithin {𝕜 F E : Type*} [NontriviallyNormedField 𝕜]
     [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
     {t : Set F} {s : Set 𝕜} {g : F → E} {f : 𝕜 → F} {x : 𝕜}
@@ -83,6 +80,20 @@ theorem fderivWithin_partials
       intro x' hx'
       simp
       exact ⟨hx', hy⟩
+
+
+theorem fderiv_partials
+  {𝕜 : Type*} [NontriviallyNormedField 𝕜] [IsRCLikeNormedField 𝕜]
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+  {f : E × F → G} {x dx : E} {y dy : F}
+  (hf : DifferentiableAt 𝕜 f (x, y)) :
+    fderiv 𝕜 f (x, y) (dx, dy)
+    = fderiv 𝕜 (fun x' => f ⟨x', y⟩) x dx + fderiv 𝕜 (fun y' => f ⟨x, y'⟩) y dy
+  := by
+    rw [← fderivWithin_univ, ← Set.univ_prod_univ, ← fderivWithin_univ, ← fderivWithin_univ]
+    exact fderivWithin_partials hf.differentiableWithinAt (Set.mem_univ x) (Set.mem_univ y) isOpen_univ isOpen_univ
 
 
 /-- If a function `f : E × F → G` has a first partial derivative (within set `s`) `f'xz` at `z`
