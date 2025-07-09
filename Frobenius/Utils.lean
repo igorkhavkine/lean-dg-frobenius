@@ -7,39 +7,47 @@ variable
   [NormedAddCommGroup C] [NormedSpace 𝕜 A] [NormedSpace 𝕜 B] [NormedSpace 𝕜 C]
 
 theorem fderiv_to_fst
-  {f : A × B → C} {U : Set A} {V : Set B} {x : A × B} {f' : A × B →L[𝕜] C}
-  (hx : x ∈ (U ×ˢ V)) (hf : HasFDerivWithinAt f f' (U ×ˢ V) x)
-  : HasFDerivWithinAt (f ⟨·, x.2⟩) (f'.comp (ContinuousLinearMap.inl 𝕜 A B)) U x.1
+  {f : A × B → C} {x : A × B} {f' : A × B →L[𝕜] C} (hf : HasFDerivAt f f' x)
+  : HasFDerivAt (f ⟨·, x.2⟩) (f'.comp (ContinuousLinearMap.inl 𝕜 A B)) x.1
   := by
     have : (f ⟨·, x.2⟩) = f ∘ ((ContinuousMap.id A).prodMk (ContinuousMap.const A x.2))
       := by rfl
     rw [this]
-    have hg : HasFDerivWithinAt ((ContinuousMap.id A).prodMk (ContinuousMap.const A x.2)) (ContinuousLinearMap.inl 𝕜 A B) U x.1 := by
-      apply HasFDerivWithinAt.prodMk
-      apply hasFDerivWithinAt_id
-      apply hasFDerivWithinAt_const
-    apply HasFDerivWithinAt.comp
+    have hg : HasFDerivAt ((ContinuousMap.id A).prodMk (ContinuousMap.const A x.2)) (ContinuousLinearMap.inl 𝕜 A B) x.1 := by
+      apply HasFDerivAt.prodMk
+      apply hasFDerivAt_id
+      apply hasFDerivAt_const
+    apply HasFDerivAt.comp
     exact hf
     exact hg
-    unfold Set.MapsTo
-    intro a ha
-    simp
-    constructor
-    exact ha
-    rw [Set.mem_prod] at hx
-    exact hx.right
 
 end
 
 section
 
-theorem fderivWithin_comp'_derivWithin {𝕜 F E : Type*} [NontriviallyNormedField 𝕜]
+theorem deriv_congr {𝕜 : Type*} [NontriviallyNormedField 𝕜] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+  {f g : 𝕜 → F} {x : 𝕜} (h : ∀ y, f y = g y) (hx : f x = g x) : deriv f x = deriv g x := by
+  repeat rw [← derivWithin_univ]
+  apply derivWithin_congr ((Set.eqOn_univ f g).mpr (funext h)) hx
+
+theorem fderiv_comp'_deriv {𝕜 F E : Type*} [NontriviallyNormedField 𝕜]
     [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-    {t : Set F} {s : Set 𝕜} {g : F → E} {f : 𝕜 → F} {x : 𝕜}
-    (hg : DifferentiableWithinAt 𝕜 g t (f x))
-    (hf : DifferentiableWithinAt 𝕜 f s x) (hs : Set.MapsTo f s t) :
-    derivWithin (fun x' => g (f x')) s x = (fderivWithin 𝕜 g t (f x) : F → E) (derivWithin f s x) :=
+    {g : F → E} {f : 𝕜 → F} {x : 𝕜}
+    (hg : DifferentiableAt 𝕜 g (f x))
+    (hf : DifferentiableAt 𝕜 f x) :
+    deriv (fun x' => g (f x')) x = (fderiv 𝕜 g (f x) : F → E) (deriv f x) :=
     sorry
+
+theorem exists_nonneg_bound_of_continuousOn {α : Type*} {E : Type*} [SeminormedAddGroup E]
+    [TopologicalSpace α] {s : Set α} (hs : IsCompact s) {f : α → E} (hf : ContinuousOn f s)
+    : ∃ C : NNReal, ∀ x ∈ s, ‖f x‖ ≤ C := by
+  have ⟨C, h⟩ := hs.exists_bound_of_continuousOn hf
+  use ‖C‖₊
+  intro x hx
+  have : C ≤ ‖C‖₊ := by
+    simp only [coe_nnnorm, Real.norm_eq_abs]
+    exact le_abs_self C
+  exact (h x hx).trans this
 
 end
 
