@@ -310,13 +310,12 @@ theorem PL_deviation
   (hf : (∀ t ∈ Icc tmin tmax, ContDiffOn ℝ 1 (f t) (closedBall x₀ a))
     ∧ IsPicardLindelofL f t₀ x₀ a r L K)
   (hfl : ∀ t ∈ Icc tmin tmax, LipschitzOnWith K (fderiv ℝ (f t)) (closedBall x₀ a))
-  (hαl : ∀ t ∈ Icc tmin tmax, LipschitzOnWith L (α ⟨·,t⟩) (closedBall x₀ r))
-  (hα : ∀ x ∈ closedBall x₀ r, α ⟨x, t₀⟩ = x
-      ∧ ∀ t ∈ Icc tmin tmax, HasDerivWithinAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) (Icc tmin tmax) t) :
-    ∃ β : E × ℝ → E →L[ℝ] E, ∀ x ∈ closedBall x₀ r,
-      ∀ t ∈ Icc tmin tmax, HasDerivWithinAt (β ⟨x, ·⟩)
-          ((fderiv ℝ (f t) (α (x, t))).comp (β ⟨x, t⟩)) (Icc tmin tmax) t
-        ∧ HasFDerivWithinAt (α ⟨·, t⟩) (β ⟨x, t⟩) (closedBall x₀ r) x := by
+  (hαl : ∀ t ∈ Ioo tmin tmax, LipschitzOnWith L (α ⟨·,t⟩) (ball x₀ r))
+  (hα : ∀ x ∈ ball x₀ r, α ⟨x, t₀⟩ = x
+      ∧ ∀ t ∈ Ioo tmin tmax, HasDerivAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) t) :
+    ∃ β : E × ℝ → E →L[ℝ] E, ∀ x ∈ ball x₀ r,
+      ∀ t ∈ Ioo tmin tmax, HasDerivAt (β ⟨x, ·⟩) ((fderiv ℝ (f t) (α (x, t))).comp (β ⟨x, t⟩)) t
+        ∧ HasFDerivAt (α ⟨·, t⟩) (β ⟨x, t⟩) x := by
   -- first start with some housekeeping
   have ha : 0 < a := sorry -- use hf.2.mul_max_le, hr and hminmax
   have hfc : ContinuousOn ↿f (Icc tmin tmax ×ˢ closedBall x₀ a) := sorry -- uniform Lipschitz
