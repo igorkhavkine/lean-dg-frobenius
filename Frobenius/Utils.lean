@@ -25,18 +25,23 @@ end
 
 section
 
+lemma subset_of_le {a b ε : ℝ} (hε : 0 < ε) : Set.Icc a b ⊆ Set.Ioo (a-ε) (b+ε) := sorry
+
 theorem deriv_congr {𝕜 : Type*} [NontriviallyNormedField 𝕜] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {f g : 𝕜 → F} {x : 𝕜} (h : ∀ y, f y = g y) (hx : f x = g x) : deriv f x = deriv g x := by
   repeat rw [← derivWithin_univ]
   apply derivWithin_congr ((Set.eqOn_univ f g).mpr (funext h)) hx
 
 theorem fderiv_comp'_deriv {𝕜 F E : Type*} [NontriviallyNormedField 𝕜]
-    [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-    {g : F → E} {f : 𝕜 → F} {x : 𝕜}
-    (hg : DifferentiableAt 𝕜 g (f x))
-    (hf : DifferentiableAt 𝕜 f x) :
-    deriv (fun x' => g (f x')) x = (fderiv 𝕜 g (f x) : F → E) (deriv f x) :=
-    sorry
+      [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+      {g : F → E} {f : 𝕜 → F} {x : 𝕜}
+      (hg : DifferentiableAt 𝕜 g (f x))
+      (hf : DifferentiableAt 𝕜 f x)
+      : deriv (fun x' => g (f x')) x = (fderiv 𝕜 g (f x) : F → E) (deriv f x) := by
+    have : ∀ x', g (f x') = (g ∘ f) x' := by
+      intro x'
+      rfl
+    rw [deriv_congr this rfl, fderiv_comp_deriv x hg hf]
 
 theorem exists_nonneg_bound_of_continuousOn {α : Type*} {E : Type*} [SeminormedAddGroup E]
     [TopologicalSpace α] {s : Set α} (hs : IsCompact s) {f : α → E} (hf : ContinuousOn f s)
@@ -48,6 +53,39 @@ theorem exists_nonneg_bound_of_continuousOn {α : Type*} {E : Type*} [Seminormed
     simp only [coe_nnnorm, Real.norm_eq_abs]
     exact le_abs_self C
   exact (h x hx).trans this
+
+theorem contDiffWithinAt_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+    [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+    {f : E → F → G} {g : E → F} {m n : WithTop ℕ∞} {x₀ : E} {s : Set E} (hx₀ : x₀ ∈ s)
+    (hf : ContDiffWithinAt 𝕜 n (Function.uncurry f) (s ×ˢ Set.univ) (x₀, g x₀)) (hg : ContDiffWithinAt 𝕜 m g s x₀)
+    (hmn : m + 1 ≤ n) : ContDiffWithinAt 𝕜 m (fun x => fderiv 𝕜 (f x) (g x)) s x₀ := by
+  simp_rw [← fderivWithin_univ]
+  refine (ContDiffWithinAt.fderivWithin hf hg uniqueDiffOn_univ
+    hmn hx₀ ?_)
+  simp only [Set.preimage_univ, Set.subset_univ]
+
+theorem contDiffOn_iff_contDiffWithinAt {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*}
+    [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
+    {f : E → F} {n : WithTop ℕ∞} {s : Set E}
+    : ContDiffOn 𝕜 n f s ↔ ∀ x ∈ s, ContDiffWithinAt 𝕜 n f s x := sorry
+
+theorem contDiffOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+    [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+    {f : E → F → G} {g : E → F} {m n : WithTop ℕ∞} {s : Set E}
+    (hf : ContDiffOn 𝕜 m (Function.uncurry f) (s ×ˢ Set.univ)) (hg : ContDiffOn 𝕜 n g s) (hnm : n + 1 ≤ m) :
+    ContDiffOn 𝕜 n (fun x => fderiv 𝕜 (f x) (g x)) s := by
+  have : ∀ x ∈ s, ContDiffWithinAt 𝕜 n (fun x => fderiv 𝕜 (f x) (g x)) s x := by
+    intro x hx
+    have hx' : (x, g x) ∈ s ×ˢ Set.univ := Set.mk_mem_prod hx trivial
+    apply contDiffWithinAt_fderiv hx (hf.contDiffWithinAt hx') (hg.contDiffWithinAt hx) hnm
+  exact contDiffOn_iff_contDiffWithinAt.mpr this
+
+theorem continuousOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
+    [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+    {f : E × F → G} {g : E → F} {n : WithTop ℕ∞} {s : Set E}
+    (hf : ContDiffOn 𝕜 n f (s ×ˢ Set.univ)) (hg : ContinuousOn g s) (hn : 1 ≤ n) :
+    ContinuousOn (fun x => fderiv 𝕜 (fun y' => f (x, y')) (g x)) s :=
+  (contDiffOn_fderiv hf (contDiffOn_zero.mpr hg) hn).continuousOn
 
 end
 
