@@ -80,6 +80,7 @@ theorem contDiffOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAdd
     apply contDiffWithinAt_fderiv hx (hf.contDiffWithinAt hx') (hg.contDiffWithinAt hx) hnm
   exact contDiffOn_iff_contDiffWithinAt.mpr this
 
+@[fun_prop]
 theorem continuousOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
     [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
     {f : E × F → G} {g : E → F} {n : WithTop ℕ∞} {s : Set E}
@@ -191,10 +192,10 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 
 -- NOTE: Uses a different `IsPicardLindelof` structure than the PR.
 --
-theorem exists_forall_mem_closedBall_eq_hasDerivWithinAt_continuousOn
-    (hf : IsPicardLindelof f tmin t₀ tmax x₀ K a L) :
-    ∃ α : E × ℝ → E, (∀ x ∈ Metric.closedBall x₀ r, α ⟨x, t₀⟩ = x ∧
-      ∀ t ∈ Set.Icc tmin tmax, HasDerivWithinAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) (Set.Icc tmin tmax) t) ∧
-      ContinuousOn α (Metric.closedBall x₀ r ×ˢ Set.Icc tmin tmax) := by sorry
+-- theorem exists_forall_mem_closedBall_eq_hasDerivWithinAt_continuousOn
+--     (hf : IsPicardLindelof f tmin t₀ tmax x₀ K a L) :
+--     ∃ α : E × ℝ → E, (∀ x ∈ Metric.closedBall x₀ r, α ⟨x, t₀⟩ = x ∧
+--       ∀ t ∈ Set.Icc tmin tmax, HasDerivWithinAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) (Set.Icc tmin tmax) t) ∧
+--       ContinuousOn α (Metric.closedBall x₀ r ×ˢ Set.Icc tmin tmax) := by sorry
 
 end PicardLindelof
