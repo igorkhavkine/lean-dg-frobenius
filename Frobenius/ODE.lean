@@ -220,6 +220,33 @@ theorem hasFDerivAt_of_hasLineDerivAt_continuous_on_nhd
   := sorry
 end GateauxFrechet
 
+section PartialFDeriv
+
+-- this is from PR #26300
+--   https://github.com/leanprover-community/mathlib4/pull/26300
+/-- If a function `f : E × F → G` has partial derivative `f'x` or `f'y` continuous
+on an open set `u`, then `f` is continously differentiable on this set, with
+the derivative given by `f' = f'x.coprod f'y`.
+-/
+theorem hasFDerivWithinAt_continuousOn_of_partial_continuousOn_open
+  {𝕜 : Type*} [NontriviallyNormedField 𝕜] [IsRCLikeNormedField 𝕜]
+  --NB: [NormedSpace ℝ E] is not needed because the proof eventually applies
+  --    the Mean Value Theorem only in the F direction. But it could have been
+  --    the other way around and it is odd to not have symmetry in the hypotheses
+  {E : Type*} [NormedAddCommGroup E] /-[NormedSpace ℝ E]-/ [NormedSpace 𝕜 E]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [NormedSpace 𝕜 F]
+  {G : Type*} [NormedAddCommGroup G] [NormedSpace 𝕜 G]
+  {f : E × F → G} {u : Set (E × F)} (hu : IsOpen u)
+  {f'x : E × F → E →L[𝕜] G} {f'y : E × F → F →L[𝕜] G}
+  (hf'x_cont : ContinuousOn f'x u) (hf'y_cont : ContinuousOn f'y u)
+  (hf'x : ∀ z ∈ u, HasFDerivAt (f ∘ (·, z.2)) (f'x z) z.1)
+  (hf'y : ∀ z ∈ u, HasFDerivAt (f ∘ (z.1, ·)) (f'y z) z.2) :
+    ContinuousOn (fun z => (f'x z).coprod (f'y z)) u
+    ∧ ∀ z ∈ u, HasFDerivAt f ((f'x z).coprod (f'y z)) z := by
+  sorry
+
+end PartialFDeriv
+
 end Util
 
 section PLWithParam
@@ -655,6 +682,33 @@ theorem PL_deviation
 -- solution of ODE is jointly continuously differentiable, when driving function
 -- is sufficiently regular
 -- theorem ...
+
+theorem PL_joint_diff
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {f : ℝ → E → E} {tmin tmax : ℝ} {t₀ : ↑(Ioo tmin tmax)}
+  {x₀ : E} {a r L K : ℝ≥0} (hr : 0 < r)
+  (α : E × ℝ → E)
+  {f' : ℝ → E → E →L[ℝ] E}
+  (hf'pl : let t₀' : Icc tmin tmax := ⟨t₀, mem_Icc_of_Ioo t₀.prop⟩;
+      IsPicardLindelofL
+        (fun t (⟨x,X⟩ : E × E) => (f t x, f' t x X))
+        t₀' (x₀,0) a r L K)
+  (hfd : ∀ t ∈ Icc tmin tmax, ∀ x ∈ closedBall x₀ a,
+    HasFDerivWithinAt (f t) (f' t x) (closedBall x₀ a) x)
+  (hfdc : ∀ x ∈ (closedBall x₀ a), ContinuousOn (f · x) (Icc tmin tmax))
+  (hfdl : ∀ t ∈ Icc tmin tmax, LipschitzOnWith K (f' t) (closedBall x₀ a))
+  (hα : ∀ x ∈ ball x₀ r, α ⟨x, t₀⟩ = x
+      ∧ ∀ t ∈ Ioo tmin tmax, HasDerivAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) t) :
+    ∃ α' : E × ℝ → E × ℝ →L[ℝ] E,
+      ContinuousOn α' (ball x₀ r ×ˢ Ioo tmin tmax)
+      ∧ ∀ x ∈ ball x₀ r, --XXX: probably need to shrink r
+        ∀ t ∈ Ioo tmin tmax,
+          HasFDerivAt α (α' ⟨x,t⟩) ⟨x,t⟩ := by
+  -- get partial derivatives of α from ODE and from `PL_deviation`
+  -- each one is continuous on the existence domain so then use
+  --   `hasFDerivWithinAt_continuousOn_of_partial_continuousOn_open`
+  -- to get joint continuous differentiability
+  sorry
 
 end PLJointDiff
 
