@@ -2,6 +2,7 @@ import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.ODE.PicardLindelof
 import Mathlib.Analysis.ODE.Gronwall
 import Mathlib.Analysis.Calculus.LineDeriv.Basic
+import Mathlib.Topology.Partial
 
 open Set Function Real NNReal Metric --ODE
 
@@ -66,6 +67,16 @@ theorem IsPicardLindelofL.mem_closedBall
   sorry
 #check PicardLindelof.FunSpace.mem_closedBall --see this proof for inspiration
 
+omit x in
+theorem IsPicardLindelofL.mem_closedBall' -- with weaker hypothesis on existence time
+  (hf : IsPicardLindelofL f t₀ x₀ a r L K)
+  {α : ℝ → E}
+  (hα₀ : α t₀ ∈ closedBall x₀ r)
+  (hα : ∀ t ∈ Ioo tmin tmax, HasDerivAt α (f t (α t)) t) :
+    ∀ t ∈ Icc tmin tmax, α t ∈ closedBall x₀ a := by
+  sorry
+#check PicardLindelof.FunSpace.mem_closedBall --see this proof for inspiration
+
 end PLCont
 
 section Util -- some helpful lemmas
@@ -113,8 +124,7 @@ theorem hadamard_div
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
   {G : Type*} [NormedAddCommGroup G] [NormedSpace ℝ G] [CompleteSpace G]
-  {f : F × E → G} {f' : F × E → E →L[ℝ] G} {v : Set F} {u : Set E}
-  (huv : IsOpen u ∧ IsOpen v ∧ Convex ℝ u ∧ Convex ℝ v)
+  {f : F × E → G} {f' : F × E → E →L[ℝ] G} {v : Set F} {u : Set E} (huc : Convex ℝ u)
   (hf : ∀ y ∈ v, ∀ z ∈ u,
       ContinuousAt f' (y, z) ∧ HasFDerivAt (f ⟨y, ·⟩) (f' (y, z)) z) :
     ∃ g : F × E × E → E →L[ℝ] G,
@@ -167,6 +177,19 @@ theorem extend_continuousLinearMap_of_nhd_zero_apply
 
 end ExtendLinear
 
+section LipschitzLinear
+
+--XXX: should be available in a newer version of Mathlib
+theorem ContinuousLinearMap.opNorm_le_iff_lipschitz {𝕜 𝕜₂ E F : Type*}
+[SeminormedAddCommGroup E] [SeminormedAddCommGroup F]
+[NontriviallyNormedField 𝕜] [NontriviallyNormedField 𝕜₂]
+[NormedSpace 𝕜 E] [NormedSpace 𝕜₂ F] {σ₁₂ : 𝕜 →+* 𝕜₂} [RingHomIsometric σ₁₂]
+{f : E →SL[σ₁₂] F} {K : NNReal} :
+  ‖f‖ ≤ ↑K ↔ LipschitzWith K ⇑f :=
+sorry
+
+end LipschitzLinear
+
 section DiffThroughApply
 
 -- differentiate through applying linear map to vector
@@ -216,7 +239,7 @@ structure IsPicardLindelofWithParamL {E F : Type*} [NormedAddCommGroup E] [Norme
   /-- The time interval of validity. -/
   mul_max_le : L * max (tmax - t₀) (t₀ - tmin) ≤ a - r
 
--- for fixed parameters we recovere the standard PL hypotheses
+-- with parameters as dynamical variables we recover the standard PL hypotheses
 theorem IsPicardLindelofWithParamL.isPicardLindelofL
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
   {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
@@ -241,7 +264,30 @@ theorem IsPicardLindelofWithParamL.isPicardLindelofL
   case mul_max_le =>
     exact hmle
 
--- Picard-Lindelöf ODE existance with parameters
+-- for fixed parameters we recover the standard PL hypotheses
+theorem IsPicardLindelofWithParamL.isPicardLindelofL'
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
+  {f : ℝ → F × E → E} {tmin tmax : ℝ} {t₀ : ↑(Icc tmin tmax)}
+  {x₀ : E} {z₀ z : F} {a r L K : ℝ≥0}
+  (hf : IsPicardLindelofWithParamL f t₀ z₀ x₀ a r L K) (hz : z ∈ closedBall z₀ a) :
+    IsPicardLindelofL (fun t x => f t (z,x)) t₀ x₀ a r L K := by
+  sorry
+
+
+-- Picard-Lindelöf ODE existance with parameters (cont in time, Lipschitz in init data and params)
+theorem IsPicardLindelofWithParamL.exists_forall_mem_closedBall_eq_hasDerivWithinAt_lipschitzOnWith
+  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
+  {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F] [CompleteSpace F]
+  {f : ℝ → F × E → E} {tmin tmax : ℝ} {t₀ : ↑(Icc tmin tmax)} (ht₀ : tmin < t₀ ∧ t₀ < tmax)
+  --(hminmax : tmin < tmax)
+  {x₀ : E} {z₀ : F} {a r L K : ℝ≥0} (hf : IsPicardLindelofWithParamL f t₀ z₀ x₀ a r L K) :
+    ∃ α : (F × E) → ℝ → E, (∀ zx ∈ closedBall (z₀, x₀) r, α zx t₀ = zx.2 ∧
+      ∀ t ∈ Ioo tmin tmax, HasDerivAt (α zx) (f t ⟨zx.1, α zx t⟩) t) ∧
+      ∃ L' : ℝ≥0, ∀ t ∈ Icc tmin tmax, LipschitzOnWith L' (α · t) (closedBall (z₀, x₀) r) := by
+  sorry
+
+-- Picard-Lindelöf ODE existance with parameters (jointly continuous version)
 -- XXX: see earlier remark about returning weak pointwise bounds on solution
 theorem IsPicardLindelofWithParamL.exists_forall_mem_closedBall_eq_hasDerivWithinAt_continuousOn
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
@@ -304,39 +350,312 @@ section PLJointDiff
 -- derivative of ODE solution, solves the differentiated ODE
 theorem PL_deviation
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
-  {f : ℝ → E → E} {tmin tmax : ℝ} {t₀ : ↑(Icc tmin tmax)} (hminmax : tmin < tmax)
+  {f : ℝ → E → E} {tmin tmax : ℝ} {t₀ : ↑(Ioo tmin tmax)} --(hminmax : tmin < tmax)
   {x₀ : E} {a r L K : ℝ≥0} (hr : 0 < r)
   (α : E × ℝ → E)
-  (hf : (∀ t ∈ Icc tmin tmax, ContDiffOn ℝ 1 (f t) (closedBall x₀ a))
-    ∧ IsPicardLindelofL f t₀ x₀ a r L K)
-  (hfl : ∀ t ∈ Icc tmin tmax, LipschitzOnWith K (fderiv ℝ (f t)) (closedBall x₀ a))
+  --(hfpl : let t₀' : Icc tmin tmax := ⟨t₀, mem_Icc_of_Ioo t₀.prop⟩;
+  --    IsPicardLindelofL f t₀' x₀ a r L K)
+  {f' : ℝ → E → E →L[ℝ] E}
+  (hf'pl : let t₀' : Icc tmin tmax := ⟨t₀, mem_Icc_of_Ioo t₀.prop⟩;
+      IsPicardLindelofL
+        (fun t (⟨x,X⟩ : E × E) => (f t x, f' t x X))
+        t₀' (x₀,0) a r L K)
+  (hfd : ∀ t ∈ Icc tmin tmax, ∀ x ∈ closedBall x₀ a,
+    HasFDerivWithinAt (f t) (f' t x) (closedBall x₀ a) x)
+  (hfdc : ∀ x ∈ (closedBall x₀ a), ContinuousOn (f · x) (Icc tmin tmax))
+  (hfdl : ∀ t ∈ Icc tmin tmax, LipschitzOnWith K (f' t) (closedBall x₀ a))
   (hαl : ∀ t ∈ Ioo tmin tmax, LipschitzOnWith L (α ⟨·,t⟩) (ball x₀ r))
   (hα : ∀ x ∈ ball x₀ r, α ⟨x, t₀⟩ = x
       ∧ ∀ t ∈ Ioo tmin tmax, HasDerivAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) t) :
     ∃ β : E × ℝ → E →L[ℝ] E, ∀ x ∈ ball x₀ r,
-      ∀ t ∈ Ioo tmin tmax, HasDerivAt (β ⟨x, ·⟩) ((fderiv ℝ (f t) (α (x, t))).comp (β ⟨x, t⟩)) t
+      ∀ t ∈ Ioo tmin tmax, HasDerivAt (β ⟨x, ·⟩) ((f' t (α (x, t))).comp (β ⟨x, t⟩)) t
         ∧ HasFDerivAt (α ⟨·, t⟩) (β ⟨x, t⟩) x := by
   -- first start with some housekeeping
+  let t₀' : Icc tmin tmax := ⟨t₀, mem_Icc_of_Ioo t₀.prop⟩
   have ha : 0 < a := sorry -- use hf.2.mul_max_le, hr and hminmax
+  have ha' : (0:ℝ) < a := sorry -- use hf.2.mul_max_le, hr and hminmax
+  have hra : r < a := sorry
+  have hra' : r.toReal < a.toReal := sorry
   have hfc : ContinuousOn ↿f (Icc tmin tmax ×ˢ closedBall x₀ a) := sorry -- uniform Lipschitz
-  have hf'c : ContinuousOn ↿(fun t x => fderiv ℝ (f t) x) (Icc tmin tmax ×ˢ closedBall x₀ a) :=
+  have hfdc : ContinuousOn ↿f' (Icc tmin tmax ×ˢ closedBall x₀ a) :=
     sorry -- uniform Lipschitz
+  have huncurryf' : uncurry f' = ↿f' := rfl
+  -- XXX: basically the properties of f' could be packaged into its own IsPicardLindelof structure
   -- define α deformation and find its differential equation
+  have hdef ⦃ε : ℝ⦄ (hε : ε ≠ 0) (Δ : E) ⦃x : E⦄
+    (hx : x ∈ ball x₀ r) (hxεΔ : x + ε • Δ ∈ ball x₀ r)
+    ⦃t⦄ (ht : t ∈ Ioo tmin tmax) :
+      HasDerivAt
+        (fun s => ε⁻¹ • (α ⟨x + ε • Δ, s⟩ - α ⟨x, s⟩))
+        (ε⁻¹ • (f t (α ⟨x + ε • Δ, t⟩) - f t (α ⟨x, t⟩)))
+        t
+    := ((hα _ hxεΔ |>.2 _ ht).sub (hα _ hx |>.2 _ ht) |>.const_smul ε⁻¹)
   -- change it to a linear equation using the Hadamard lemma
+  obtain ⟨g, hg⟩ := hadamard_div
+    (f := ↿f)
+    (f' := ↿f')
+    --(C := K)
+    (v := Ioo tmin tmax)
+    --⟨Metric.isOpen_ball (x := x₀) (ε := a), isOpen_Ioo (a := tmin) (b := tmax), convex_ball x₀ a, convex_Ioo tmin tmax⟩
+    (convex_ball x₀ a)
+    (by
+      intro t ht x hx
+      constructor
+      · exact hfdc.continuousAt sorry
+      · exact (hfd t (mem_Icc_of_Ioo ht) x (mem_of_mem_of_subset hx ball_subset_closedBall)).hasFDerivAt sorry
+      )
   -- prove IsPicardLindelofParamL for the deformation equation
+  have hfpl : IsPicardLindelofL f t₀' x₀ a r L K := {
+    lipschitzOnWith := fun t ht => by -- XXX: fun_prop?
+      have := (LipschitzWith.prod_fst).comp_lipschitzOnWith (hf'pl.lipschitzOnWith t ht)
+      have := this.comp <| (LipschitzWith.prodMk_right (0:E)).lipschitzOnWith
+        (s := closedBall x₀ a)
+      simp only [← closedBall_prod_same, one_mul, mul_one, comp_def] at this
+      exact this (fun x hx => ⟨hx, mem_closedBall_self a.prop⟩)
+    continuousOn := fun x hx => by
+      have : MapsTo (fun s ↦ (s, x)) (Icc tmin tmax) (Icc tmin tmax ×ˢ closedBall x₀ ↑a)
+        := fun s hs => ⟨hs,hx⟩
+      fun_prop (disch:=assumption)
+    norm_le := fun t ht x hx => by
+      have := (hf'pl.norm_le t ht ⟨x,0⟩)
+      simp only [← closedBall_prod_same] at this
+      have := this ⟨hx, mem_closedBall_self a.prop⟩
+      simp only [Prod.norm_mk, map_zero, norm_zero, norm_nonneg, sup_of_le_left] at this
+      exact this
+    mul_max_le := hf'pl.mul_max_le
+  }
+  -- the manipulations with `this` that go on until invoking `hg` could go into a helper lemma
+  have := fun t ht x X hx =>
+    (hf'pl.norm_le t ht ⟨x,X⟩ hx)
+  simp only [Prod.norm_mk, sup_le_iff, ← closedBall_prod_same, mem_prod, and_imp] at this
+  conv at this =>
+    intro t ht x
+    rw [forall_comm]
+    ext hx X
+    rw [mem_closedBall_zero_iff]
+  replace this := fun t ht x hx X (hX : ‖(a:ℝ)⁻¹ • X‖ = 1) => by
+    have := (this t ht x hx X)
+    rw [norm_smul, norm_inv, norm_eq_abs, abs_eq, inv_mul_eq_one₀ ha'.ne.symm] at hX
+    replace this := (mul_le_mul_left (show 0 < (a:ℝ)⁻¹ by sorry)).mpr (this hX.symm.le).2
+    nth_rw 1 [← abs_of_nonneg (show 0 ≤ (a:ℝ)⁻¹ by sorry), ← norm_eq_abs,
+      ← norm_smul, ← map_smul] at this
+    nth_rw 2 [← NNReal.coe_inv a] at this
+    rw [← NNReal.coe_mul] at this
+    exact this
+  replace this := fun t ht x hx X => this t ht x hx ((a:ℝ) • X)
+  simp only [smul_smul, inv_mul_cancel₀ ha'.ne.symm, one_smul] at this
+  replace this := fun t ht x (hx : x ∈ ball x₀ ↑a) => ContinuousLinearMap.opNorm_le_of_unit_norm
+    (sorry) (this t ht x (mem_of_mem_of_subset hx ball_subset_closedBall))
+  simp only [← uncurry_apply_pair f', huncurryf'] at this
+  replace this := fun t (ht : t ∈ Icc tmin tmax) =>
+    --XXX fix later: mismatch between t ∈ Icc and t ∈ Ioo
+    (hg t sorry).1.2 (this t ht)
+  --XXX: these commented lines could help prove hgpl.lipschitzOnWith below
+  --     but need to sort out `ball` vs `closeBall` domain issues
+  --have := fun t ht =>
+  --  (hf'pl.lipschitzOnWith t ht)
+  --simp only [← closedBall_prod_same, lipschitzOnWith_iff_norm_sub_le, mem_prod,
+  --  dist_zero_right, Prod.mk_sub_mk, Prod.norm_mk, sup_le_iff, and_imp,
+  --  Prod.forall] at this
+  --have := fun t ht x hx X hX =>
+  --  (this t ht x X hx hX x 0 hx (mem_closedBall_self a.prop)).2
+  --simp only [map_zero, sub_zero, sub_self, norm_zero, norm_nonneg, sup_of_le_right] at this
+  --have := fun t ht x (hx : x ∈ ball x₀ a) X (hX : X ∈ ball 0 a) =>
+  --  (this t ht x (mem_of_mem_of_subset hx ball_subset_closedBall))
+  --    X (mem_of_mem_of_subset hX ball_subset_closedBall)
+  --have := fun t ht x hx => ContinuousLinearMap.opNorm_le_of_ball ha K.prop (this t ht x hx)
+  --have hf'b := fun t ht x hx => (hg t ht).1.2 (C := K) (this t (mem_Icc_of_Ioo ht)) x hx
+  have hr2 : r / 2 < r := sorry
+  have hr2' : (r / 2).toReal < r.toReal := sorry
+  have hr22' : (r / 2 / 2).toReal < (r / 2).toReal := sorry
+  have hr22'pos : 0 < (r / 2 / 2).toReal := sorry
+  have hgpl :
+      IsPicardLindelofWithParamL (fun t (b : (ℝ × E × E) × E) => let ((ε, Δ, x), A) := b;
+          (g (t, α (x + ε • Δ, t), α (x, t))) A)
+        t₀' (0,0,x₀) 0 (r / 2) (r / 2 / 2) L (2*K) := {
+    lipschitzOnWith := sorry
+    continuousOn := sorry
+    norm_le := fun t ht ⟨⟨ε,Δ,x⟩,A⟩ h => by
+      simp only [← closedBall_prod_same] at h
+      simp only [mem_prod] at h
+      obtain ⟨⟨hε, hΔ, hx⟩, hA⟩ := h
+      simp only [← Function.curry_apply α] at hα
+      have hαx0 : curry α x t₀ ∈ closedBall x₀ (r / 2).toReal := by
+        convert hx
+        exact (hα x (mem_of_mem_of_subset hx (closedBall_subset_ball (x:=x₀) hr2'))).1
+      have hαx := (hα x
+        (mem_of_mem_of_subset hx (closedBall_subset_ball (x:=x₀) hr2'))).2
+      have hαx_mem := hfpl.mem_closedBall'
+        (mem_of_mem_of_subset hαx0 (closedBall_subset_closedBall hr2'.le))
+        hαx
+      have hxε : x + ε • Δ ∈ closedBall x₀ (r / 2).toReal := by
+        sorry -- maybe need ε < 1
+      have hαxε0 : curry α (x + ε • Δ) t₀ ∈ closedBall x₀ (r / 2) := by
+        convert hxε
+        exact (hα (x + ε • Δ) (mem_of_mem_of_subset hxε (closedBall_subset_ball (x:=x₀) hr2'))).1
+      have hαxε := (hα (x + ε • Δ)
+        (mem_of_mem_of_subset hxε (closedBall_subset_ball (x:=x₀) hr2'))).2
+      have hαxε_mem := hfpl.mem_closedBall'
+        (mem_of_mem_of_subset hαxε0 (closedBall_subset_closedBall hr2'.le))
+        hαxε
+      simp only
+      calc
+        _ ≤ _ := ContinuousLinearMap.le_opNorm _ A
+        _ ≤ ↑(a⁻¹ * L) * a := by
+          gcongr
+          --XXX: conflict between `ball _ a` and `closedBall _ a`
+          --     possibly need to allow shrinking of domain
+          · sorry --exact this t ht _ (hαx_mem t ht) _ (hαxε_mem t ht)
+          · simp only [mem_closedBall_zero_iff] at hA
+            apply hA.trans _
+            sorry
+        _ = _ := by
+          rw [NNReal.coe_mul, mul_comm _ (a.toReal), ← mul_assoc]
+          rw [NNReal.coe_inv a, mul_inv_cancel₀ ha'.ne.symm, one_mul]
+    mul_max_le := sorry
+  }
   -- obtain solution γ with appropriate initial data, use its continuity and Lipschitz-ness
+  obtain ⟨γ, hγ⟩ :=
+    hgpl.exists_forall_mem_closedBall_eq_hasDerivWithinAt_lipschitzOnWith (mem_Ioo.mp t₀.prop)
+  have hγcont : ContinuousOn ↿γ
+      (closedBall ((0, 0, x₀), 0) (r / 2 / 2).toReal ×ˢ Ioo tmin tmax) := by
+    sorry --use uniform Lipschitz-ness
   -- use ODE uniqueness to show that γ coincides with deformation when ε ≠ 0
-  -- set ε = 0 in γ and show that it is locally linear in initial data
+  have hinit ⦃ε : ℝ⦄ (hε : ε ≠ 0) (Δ : E) ⦃x : E⦄
+    (hx : x ∈ ball x₀ r) (hxεΔ : x + ε • Δ ∈ ball x₀ r) :
+      ε⁻¹ • (α ⟨x + ε • Δ, t₀⟩ - α ⟨x, t₀⟩) = Δ := by
+    sorry
+  have hαγ : ∀ εΔx : ℝ × E × E, let ⟨ε,Δ,x⟩ := εΔx;
+    (((ε,Δ,x),Δ) ∈ closedBall ((0, 0, x₀), 0) (r / 2 / 2).toReal) → ε ≠ 0 → ∀ t ∈ Ioo tmin tmax,
+      γ ((ε,Δ,x),Δ) t = ε⁻¹ • (α (x + ε • Δ, t) - α (x, t)) := by
+    intro ⟨ε,Δ,x⟩ hball hε
+    change EqOn _ _ _
+    --have xxx A hA := hγ.1 ⟨⟨ε,Δ,x⟩,A⟩ hA
+    apply ODE_solution_unique_of_mem_Ioo (t₀ := t₀) (s := fun t => univ) (K := K)
+      _
+      t₀.prop
+      (fun t ht => by
+        refine ⟨(hγ.1 ⟨⟨ε,Δ,x⟩,Δ⟩ sorry).2 t ht, mem_univ _⟩
+        )
+      (fun t ht => by
+        -- forgot to change f - f into g in `hdef`
+        --refine ⟨hdef hε Δ (x:=x) sorry sorry ht, mem_univ _⟩
+        refine ⟨?_, mem_univ _⟩
+        sorry
+        )
+      ((hγ.1 _ hball).1.trans (hinit (ε:=ε) sorry Δ (x:=x) sorry sorry).symm)
+    sorry
+  -- set ε = 0 in γ and show that it is locally linear in initial data, use linearity of ODE
+  have hβcont : ∀ t ∈ Ioo tmin tmax, ∀ x ∈ closedBall x₀ (r / 2 / 2).toReal,
+      ContinuousOn (fun Δ ↦ γ ((0, Δ, x), Δ) t) (closedBall 0 (r / 2 / 2).toReal) :=
+    sorry
+  have hβadd : ∀ t ∈ Ioo tmin tmax, ∀ x ∈ closedBall x₀ (r / 2 / 2).toReal,
+    ∀ z ∈ closedBall (0:E) (r / 2 / 2).toReal, ∀ y ∈ closedBall (0:E) (r / 2 / 2).toReal,
+    z + y ∈ closedBall 0 (r / 2 / 2).toReal →
+      (fun Δ ↦ γ ((0, Δ, x), Δ) t) (z + y) =
+        (fun Δ ↦ γ ((0, Δ, x), Δ) t) z + (fun Δ ↦ γ ((0, Δ, x), Δ) t) y :=
+    sorry
+  have hβsmul : ∀ t ∈ Ioo tmin tmax, ∀ x ∈ closedBall x₀ (r / 2 / 2).toReal,
+    ∀ c : ℝ, ∀ y ∈ closedBall (0:E) (r / 2 / 2).toReal, c • y ∈ closedBall 0 (r / 2 / 2).toReal →
+      (fun Δ ↦ γ ((0, Δ, x), Δ) t) (c • y) = c • (fun Δ ↦ γ ((0, Δ, x), Δ) t) y :=
+    sorry
   -- use the local linearity to extract the corresponding β linear map
+  have hβγ t (ht : t ∈ Ioo tmin tmax) x (hx : x ∈ closedBall x₀ (r / 2 / 2).toReal) :=
+    extend_continuousLinearMap_of_nhd_zero_apply
+      (hU := closedBall_mem_nhds 0 hr22'pos)
+      (f := fun Δ => γ ((0, Δ, x), Δ) t)
+      (hf := hβcont t ht x hx)
+      (hfadd := hβadd t ht x hx)
+      (hfsmul := hβsmul t ht x hx)
+  letI βsub : (closedBall x₀ (r / 2 / 2).toReal) ×ˢ (Ioo tmin tmax) → E →L[ℝ] E :=
+    fun ⟨⟨x,t⟩, ⟨hx,ht⟩⟩ => extend_continuousLinearMap_of_nhd_zero
+      (hU := closedBall_mem_nhds 0 hr22'pos)
+      (f := fun Δ => γ ((0, Δ, x), Δ) t)
+      (hf := hβcont t ht x hx)
+      (hfadd := hβadd t ht x hx)
+      (hfsmul := hβsmul t ht x hx)
+  have βext := Function.Injective.extend_apply (Subtype.val_injective) βsub 0
+  replace hβγ t (ht : t ∈ Ioo tmin tmax) x (hx : x ∈ closedBall x₀ (r / 2 / 2).toReal)
+      Δ (hΔ : Δ ∈ closedBall (0:E) (r / 2 / 2).toReal) := by
+    have := congr_arg (fun m => m Δ) (βext ⟨⟨x,t⟩, ⟨hx,ht⟩⟩)
+    simp only at this
+    exact this.trans (hβγ t ht x hx Δ hΔ)
+  have hγ0 (x : E) (hx : x ∈ closedBall x₀ (r / 2 / 2).toReal)
+    t (ht : t ∈ Ioo tmin tmax)
+    (Δ : E) (hΔ : Δ ∈ closedBall 0 (r / 2 / 2).toReal)
+      := by
+    have := (hγ.1 ((0,Δ,x), Δ) sorry).2 t ht
+    simp only at this
+    simp only [← hβγ t ht x sorry Δ sorry] at this
+    have this := this.congr_of_eventuallyEq
+      (Set.EqOn.eventuallyEq_of_mem (fun t ht => hβγ t ht x sorry Δ sorry)
+        (Ioo_mem_nhds ht.1 ht.2))
+    simp only [zero_smul, add_zero, ← ContinuousLinearMap.comp_apply] at this
+    simp only [((hg t ht).2.2 (α (x, t)) sorry).1] at this
+    exact this
+  set β := extend Subtype.val βsub 0
+  replace hγ0 (x : E) (hx : x ∈ closedBall x₀ (r / 2 / 2).toReal) :=
+    (hasDerivAt_iff_hasDerivAt_apply_on_nhd_zero
+      (I := Ioo tmin tmax)
+      sorry
+      (convex_Ioo tmin tmax)
+      (isOpen_Ioo)
+      (closedBall_mem_nhds 0 hr22'pos)).mp (hγ0 x hx)
   -- use β for the ∃ goal
+  use β
+  intro x hx t ht
   -- split the goal into the ODE for β and into relating β to the derivative of α
-  -- first, simplify the deformation ODE to satisfy the ODE goal
-  -- second, convert FDeriv into LineDeriv for α, rewrite using ε → 0 quotient limit
-  -- take advantage of the ε ≠ 0 condition to rewrite the limit in terms of β, use continuity
-  sorry
+  refine ⟨?ode, ?fderiv⟩
+  case ode =>
+    -- first, simplify the deformation ODE to satisfy the ODE goal
+    -- XXX: mismatch on the hypothesis hx, the neighborhood to which x belongs
+    exact hγ0 x sorry t ht
+  case fderiv =>
+    -- second, convert FDeriv into LineDeriv for α, rewrite using ε → 0 quotient limit
+    apply hasFDerivAt_of_hasLineDerivAt_continuous_on_nhd
+      (f' := fun y => β (y, t))
+      ((isOpen_ball (x:=x₀) (ε:=(r / 2 / 2).toReal)).mem_nhds sorry)
+      (fun x ↦ α (x, t))
+      _
+      sorry
+    intro y hy Δ
+    -- it is sufficient to deal with Δ in a neighborhood of 0
+    suffices Δ ∈ closedBall 0 (r / 2 / 2).toReal →
+        HasLineDerivAt ℝ (fun x ↦ α (x, t)) (((fun y ↦ β (y, t)) y) Δ) y Δ by
+      -- rescale Δ to meet goal, use HasLineDerivAt.smul or hasLineDerivAt_smul_iff
+      sorry
+    intro hΔ
+    -- rewrite LineDeriv as limit on punctured neighborhood
+    simp only [hasLineDerivAt_iff_tendsto_slope_zero]
+    -- rewrite punctured neighborhood limit as limit on subset
+    set NZ : Set ℝ := {0}ᶜ
+    let NZtoR : NZ → ℝ := Subtype.val
+    rw [← Subtype.range_val (s := NZ), show Subtype.val = NZtoR by rfl]
+    rw [← Filter.tendsto_comap'_iff self_mem_nhdsWithin]
+    rw [comap_nhdsWithin_range NZtoR 0]
+    -- simplify fraction formula and show that it is equal to g on subset
+    set F := (fun ε:ℝ => ε⁻¹ • (α (y + ε • Δ, t) - α (y, t)))
+    have heq : F ∘ NZtoR = (fun ε => γ ((ε, Δ, y), Δ) t) ∘ NZtoR := by sorry
+    simp only [heq]
+    -- take advantage of the ε ≠ 0 condition to rewrite the limit in terms of β, use continuity
+    have hy' := mem_of_mem_of_subset hy (ball_subset_closedBall)
+    simp only [hβγ t ht y hy' Δ hΔ]
+    apply Filter.Tendsto.comp _ Filter.tendsto_map
+    apply Filter.Tendsto.mono_left _ Filter.map_comap_le
+    apply ContinuousAt.tendsto
+    apply ContinuousOn.continuousAt
+      _ (closedBall_mem_nhds 0 hr22'pos)
+    rw [show ↿γ = (fun Xt => γ Xt.1 Xt.2) from rfl] at hγcont
+    --fun_prop --XXX: doesn't work, even after the rw in hγcont
+    apply hγcont.comp (f := fun ε => (((ε, Δ, y), Δ), t)) (by fun_prop) _
+    unfold MapsTo; intro ε hε
+    simp only [mem_prod, ht, and_true, ← closedBall_prod_same]
+    exact ⟨⟨hε, hΔ, hy'⟩, hΔ⟩
 
 -- solution of ODE is jointly continuously differentiable, when driving function
 -- is sufficiently regular
 -- theorem ...
 
 end PLJointDiff
+
+#check IsCompact.exists_bound_of_continuousOn
