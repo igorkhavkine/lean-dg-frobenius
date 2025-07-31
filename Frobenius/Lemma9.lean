@@ -78,7 +78,7 @@ lemma η_unique
     have : Differentiable ℝ g := sorry
     -- have foo : ContinuousOn (fderiv ℝ g) Set.univ := sorry
     unfold lip_bounds
-    apply ContinuousOn.norm   -- TODO: maybe a different strategy, since linear mapping to functional space need not be continuous
+    apply ContinuousOn.norm
     have : ∀ t, DifferentiableAt ℝ (fun z' ↦ g (y0 + t • (y - y0), z')) (ζ (t, y, z)) := by fun_prop
     conv =>
       arg 1
@@ -87,7 +87,8 @@ lemma η_unique
       simp only [fderiv_fun_const, Pi.zero_apply, ContinuousLinearMap.comp_zero, zero_add]
     have hg' : ContDiffOn ℝ 1 (fun ⟨t,z'⟩ => g (y0 + t • (y-y0), z')) ((Set.Icc (-ε) (1+ε)) ×ˢ Set.univ) := by fun_prop
     have hζ' : ContinuousOn (ζ ⟨·, y, z⟩) (Set.Icc (-ε) (1+ε)) := sorry
-    have : Continuous (fun t ↦ (fderiv ℝ (fun z' ↦ g (y0 + t • (y - y0), z')) (ζ (t, y, z))).flip y) := by
+    have : Continuous (fun t ↦ (fderiv ℝ (fun z' ↦ g (y0 + t • (y - y0), z')) (ζ (t, y, z))).flip y) := by -- TODO: lemma for continuity of flip
+      fun_prop
       --apply LinearMap.continuous_of_finiteDimensional
       sorry
     exact this.continuousOn
@@ -124,12 +125,40 @@ lemma η_unique
     simp only [this, ContinuousLinearMap.zero_apply]
 
 lemma exchange_deriv
-   {X : Type*} {dimX : ℕ} [oNormedSpace X dimX]
-   {f : ℝ × B → X} {sb : Set B} {sf : Set ℝ}
-   (f_smooth : SmoothFunctionOn (dimB := 1+dimB) (dimF := dimX) f (sf ×ˢ sb))
-   {q : B} {r : ℝ} (hq : q ∈ sb) (hr : r ∈ sf)
-  : deriv (fun s => fderiv ℝ (fun x => f (s, x)) q) r = fderiv ℝ (fun x => deriv (fun s => f (s, x)) r) q
-  := by sorry
+    {X : Type*} {dimX : ℕ} [oNormedSpace X dimX]
+    {f : ℝ × B → X} {sb : Set B} {sf : Set ℝ} {q : B} {r : ℝ}
+    (f_smooth : SmoothFunctionOn (dimB := 1+dimB) (dimF := dimX) f (sf ×ˢ sb))
+    (sb_open : IsOpen sb) (sf_open : IsOpen sf) (hq : q ∈ sb) (hr : r ∈ sf)
+    : deriv (fun s => fderiv ℝ (fun x => f (s, x)) q) r = fderiv ℝ (fun x => deriv (fun s => f (s, x)) r) q := by
+  have : ∀ b, ∀ {s}, s ∈ sf → fderiv ℝ (fun x ↦ f (s, x)) q b = fderiv ℝ f (s,q) (0,b) := by
+    intro b s hs
+    have pt : (s, q) ∈ sf ×ˢ sb := Set.mk_mem_prod hs hq
+    have nh : sf ×ˢ sb ∈ nhds (s, q) := prod_mem_nhds_iff.mpr ⟨IsOpen.mem_nhds sf_open hs, IsOpen.mem_nhds sb_open hq⟩
+    rw [fderiv_partials ((f_smooth.differentiableOn ENat.LEInfty.out (s, q) pt).differentiableAt nh)]
+    simp only [fderiv_eq_smul_deriv, zero_smul, zero_add]
+
+  rw [← fderiv_deriv, ← fderivWithin_eq_fderiv (s := sf)]
+  · have : ∀ b, (fderivWithin ℝ (fun s ↦ (fderiv ℝ (fun x ↦ f (s, x)) q) b) sf r) 1 = (fderivWithin ℝ (fun s ↦ fderiv ℝ f (s,q) (0,b)) sf r) 1 := by
+      intro b
+      congr 1
+      apply fderivWithin_congr
+      · unfold Set.EqOn
+        intro s hs
+        simp only
+        exact this b hs
+      · exact this b hr
+    rw [this, fderivWithin_eq_fderiv]
+    have : (fderiv ℝ (fun s ↦ (fderiv ℝ f (s, q)) (0, b)) r) 1 = fderiv ℝ (fun x => fderiv ℝ f x (0, b)) (r,q) (1,0) := by
+      rw [fderiv_partials]
+      simp only [fderiv_eq_smul_deriv, one_smul, map_zero, add_zero]
+      sorry
+    · rw [this]
+      sorry
+    · exact IsOpen.uniqueDiffWithinAt sf_open hr
+    · sorry
+  · exact IsOpen.uniqueDiffWithinAt sf_open hr
+  · sorry
+
 
 -- use this if @[fun_prop] attribute is not included for some theorem in Mathlib
 attribute [fun_prop] ContDiffOn.comp
@@ -156,9 +185,11 @@ lemma Lemma9b
     have ζ_smooth : SmoothFunction (dimB := 1+dimB+dimF) (dimF := dimF) ζ := sorry
     have ζ_diff : ∀ {r y z}, r ∈ (Set.Icc (-ε) (1+ε)) → y ∈ sb → z ∈ sf → DifferentiableAt ℝ ζ (r, y, z) := sorry
 
-    have η_deriv_eq : ∀ {r y z b}, r ∈ (Set.Icc (-ε) (1+ε)) → y ∈ sb → z ∈ sf → deriv (fun s => η (s, y, z) b) r = (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z') y) (ζ (r, y, z)) (η (r, y, z) b))
+    have η_deriv_eq : ∀ {r y z b}, r ∈ (Set.Ioo (-ε) (1+ε)) → y ∈ sb → z ∈ sf → deriv (fun s => η (s, y, z) b) r = (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z') (y-y0)) (ζ (r, y, z)) (η (r, y, z) b))
       := by
-        intro r y z b hr hy hz
+        intro r y z b hro hy hz
+
+        have hr : r ∈ Set.Icc (-ε) (1+ε) := Set.mem_Icc_of_Ioo hro
 
         calc
           deriv (fun s => (η (s, y, z)) b) r
@@ -179,7 +210,7 @@ lemma Lemma9b
             - g (y0 + r • (y - y0), ζ (r, y, z))
             - r • (fderiv ℝ g (y0 + r • (y-y0), ζ (r, y, z)) (deriv (fun s => (y0 + s • (y - y0), ζ (s, y, z))) r))) b := by
             congr
-            · rw [exchange_deriv (f := fun p => ζ (p.1, p.2, z)) _ hy hr]
+            · rw [exchange_deriv (f := fun p => ζ (p.1, p.2, z)) _ sb_open isOpen_Ioo hy hro]
               unfold SmoothFunctionOn
               fun_prop
             · rw [fderiv_comp'_deriv]
@@ -202,11 +233,13 @@ lemma Lemma9b
           _ = (fderiv ℝ (fun x => (g (y0 + r • (x - y0), ζ (r, x, z))) (x - y0)) y
             - g (y0 + r • (y - y0), ζ (r, y, z))
             - r • fderiv ℝ g (y0 + r • (y-y0), ζ (r, y, z)) ((y - y0), (g (y0 + r • (y - y0), ζ (r, y, z))) (y - y0))) b := by
-            congr
-            · ext y'
-              have hy' : y' ∈ sb := sorry -- TODO: either assume sf is a submodule of F, or use fderivWithin sf
-              exact (ζ_eq hr hy' hz).deriv
-            · exact (ζ_eq hr hy hz).deriv
+            congr 2
+            · congr 1
+              rw [← fderivWithin_eq_fderiv (s := sb), ← fderivWithin_eq_fderiv (s := sb)]
+              apply fderivWithin_congr
+              repeat sorry
+            · congr
+              exact (ζ_eq hr hy hz).deriv
 
           _ = ((g (y0 + r • (y-y0), ζ (r,y,z)) + (fderiv ℝ (fun x => g (y0 + r • (x-y0), ζ (r,x,z))) y).flip (y-y0))
             - g (y0 + r • (y - y0), ζ (r, y, z))
@@ -250,17 +283,37 @@ lemma Lemma9b
               fun_prop
             · rw [← ContinuousLinearMap.smul_apply, smul_add, ← map_smul, ← map_smul, ← map_smul]
 
-          _ = (Curvature g (y0 + r • (y-y0), ζ (r,y,z)) (r • (y-y0)) b) + (fderiv ℝ (fun z' ↦ (g (y0 + r • (y - y0), z')) y) (ζ (r, y, z))) ((η (r, y, z)) b) := by
+          _ = -(Curvature g (y0 + r • (y-y0), ζ (r,y,z)) (r • (y-y0)) b) + (fderiv ℝ (fun z' ↦ (g (y0 + r • (y - y0), z')) (y-y0)) (ζ (r, y, z))) ((η (r, y, z)) b) := by
             unfold Curvature
             unfold η
             simp only
-            set dy := r • (y-y0)
-            set Z := ζ (r,y,z)
-            --
+            rw [ContinuousLinearMap.sub_apply, ContinuousLinearMap.map_sub _ ((fderiv ℝ (fun x ↦ ζ (r, x, z)) y) b)]
 
-  -- Curvature:
-  --   (fderiv ℝ g p (d1, 0) d2 + (fderiv ℝ g p) (0, g p d1) d2
-  -- - (fderiv ℝ g p (d2, 0) d1 + (fderiv ℝ g p) (0, g p d2) d1))
+            have : DifferentiableAt ℝ g (y0 + r • (y - y0), ζ (r, y, z)) := g_diff (y0 + r • (y - y0), ζ (r, y, z))
+            rw [fderiv_partials this, fderiv_partials this, fderiv_partials this, fderiv_partials this]
+
+            simp only [ContinuousLinearMap.add_apply, map_zero, add_zero, zero_add,
+              ContinuousLinearMap.coe_smul', Pi.smul_apply]
+            rw [fderiv_clm_apply _ (differentiableAt_const (y - y0))]
+            · simp only [fderiv_fun_const, Pi.zero_apply, ContinuousLinearMap.comp_zero,
+                zero_add, ContinuousLinearMap.flip_apply]
+              set dy := r • (y-y0) with hdy
+              set Z := ζ (r,y,z)
+              set gx := (fun x' ↦ g (x', Z))
+              set gz := (fun z' ↦ (g (y0 + dy, z')))
+              set gzy := (fun z' ↦ (g (y0 + dy, z')) y)
+              rw [
+                ContinuousLinearMap.map_smul (fderiv ℝ gz Z), ContinuousLinearMap.smul_apply,
+                ← ContinuousLinearMap.map_smul ((fderiv ℝ gz Z) ((g (y0 + dy, Z)) b)) r, ← hdy
+              ]
+              abel
+            · fun_prop
+
+          _ = (fderiv ℝ (fun z' ↦ (g (y0 + r • (y - y0), z')) (y-y0)) (ζ (r, y, z))) ((η (r, y, z)) b) := by
+            unfold TotalFderivCompat at g_compat
+            rw [g_compat (y0 + r • (y - y0), ζ (r, y, z)) _ (r • (y - y0)) b]
+            · simp only [neg_zero, map_sub, zero_add]
+            · sorry
 
     have η_diff : ∀ {r y z b}, r ∈ Set.Icc (-ε) (1+ε) → y ∈ sb → z ∈ sf → ∃ η', HasDerivAt (η ⟨·, y, z⟩ b) η' r
       := by
