@@ -53,6 +53,8 @@ abbrev TotalFderivCompat (g : B × F → B →L[ℝ] F) (U : Set (B × F)) :=
   ∀ p ∈ U, ∀ d1 d2, Curvature g p d1 d2 = 0
 
 
+-- The auxiliary function η used below is identically zero.
+--
 lemma η_unique
     {η : ℝ × B × F → B →L[ℝ] F} {g : B × F → B →L[ℝ] F} {sb : Set B} {sf : Set F} {y0 : B}
     (hy0 : y0 ∈ sb)
@@ -72,6 +74,8 @@ lemma η_unique
     · rw [← add_zero (a := 0)]
       exact add_lt_add_of_le_of_lt (by exact zero_le_one' ℝ) hε
 
+  -- Obtain a Lipschitz bound in order to use ODE solution uniqueness.
+  --
   let lip_bounds (t : ℝ) := ‖(fderiv ℝ (fun z' => g (y0 + t • (y-y0), z') y) (ζ (t, y, z)))‖
   have lip_bounds_cont : ContinuousOn lip_bounds (Set.Icc (-ε) (1+ε)) := by
     have : ContDiff ℝ 1 g := sorry
@@ -99,6 +103,8 @@ lemma η_unique
   let h := Classical.choose_spec total_bound
   set K := Classical.choose total_bound
 
+  -- Use the uniqueness property of ODE solution.
+  --
   apply ODE_solution_unique_of_mem_Icc (K := K) (v := fun t => (fderiv ℝ (fun z' => g (y0 + t • (y-y0), z') y) (ζ (t, y, z)))) (t₀ := 0) (s := fun _ => Set.univ)
   · intro t ht
     have := (fderiv ℝ (fun z' => g (y0 + t • (y-y0), z') y) (ζ (t, y, z))).lipschitz
@@ -124,12 +130,17 @@ lemma η_unique
   · have := η_init hy hz
     simp only [this, ContinuousLinearMap.zero_apply]
 
+-- We may exchange partial derivatives (`fderiv` and `deriv`) of a smooth function.
+--
 lemma exchange_deriv
     {X : Type*} {dimX : ℕ} [oNormedSpace X dimX]
     {f : ℝ × B → X} {sb : Set B} {sf : Set ℝ} {q : B} {r : ℝ}
     (f_smooth : SmoothFunctionOn (dimB := 1+dimB) (dimF := dimX) f (sf ×ˢ sb))
     (sb_open : IsOpen sb) (sf_open : IsOpen sf) (hq : q ∈ sb) (hr : r ∈ sf)
     : deriv (fun s => fderiv ℝ (fun x => f (s, x)) q) r = fderiv ℝ (fun x => deriv (fun s => f (s, x)) r) q := by
+
+  -- Technicality to use in `congr` rewrites.
+  --
   have : ∀ b, ∀ {s}, s ∈ sf → fderiv ℝ (fun x ↦ f (s, x)) q b = fderiv ℝ f (s,q) (0,b) := by
     intro b s hs
     have pt : (s, q) ∈ sf ×ˢ sb := Set.mk_mem_prod hs hq
@@ -163,6 +174,9 @@ lemma exchange_deriv
 -- use this if @[fun_prop] attribute is not included for some theorem in Mathlib
 attribute [fun_prop] ContDiffOn.comp
 
+-- If a solution exists for a particular driving function satisfying the zero curvature condition,
+-- then the solution satisfies a different differential equation in its "basepoint" argument.
+--
 set_option maxHeartbeats 1000000 in
 lemma Lemma9b
   {g : B × F → B →L[ℝ] F} {sb : Set B} {sf : Set F} {y0 : B}
@@ -175,6 +189,8 @@ lemma Lemma9b
   : ∀ t ∈ Set.Icc 0 1, ∀ y ∈ sb, ∀ z ∈ sf, fderiv ℝ (fun y' => ζ (t, y', z)) y = t • g (y0 + t • (y-y0), ζ (t, y, z)) := by
     intro t ht
 
+    -- Auxiliary function; we'll show it satisfies an equation that will give us the result about ζ.
+    --
     let η : ℝ × B × F → B →L[ℝ] F := by
       intro ⟨t, y, z⟩
       exact (fderiv ℝ (fun x => ζ (t, x, z)) y) - t • g (y0 + t • (y - y0), ζ (t, y, z))
@@ -185,6 +201,9 @@ lemma Lemma9b
     have ζ_smooth : SmoothFunction (dimB := 1+dimB+dimF) (dimF := dimF) ζ := sorry
     have ζ_diff : ∀ {r y z}, r ∈ (Set.Icc (-ε) (1+ε)) → y ∈ sb → z ∈ sf → DifferentiableAt ℝ ζ (r, y, z) := sorry
 
+    -- The auxiliary differential equation, which holds under the assumption that η is
+    -- differentiable (we don't know that yet).
+    --
     have η_deriv_eq : ∀ {r y z b}, r ∈ (Set.Ioo (-ε) (1+ε)) → y ∈ sb → z ∈ sf → deriv (fun s => η (s, y, z) b) r = (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z') (y-y0)) (ζ (r, y, z)) (η (r, y, z) b))
       := by
         intro r y z b hro hy hz
@@ -193,6 +212,9 @@ lemma Lemma9b
 
         calc
           deriv (fun s => (η (s, y, z)) b) r
+
+          -- Expand η and simplify.
+          --
           = (deriv (fun s => fderiv ℝ (fun x => ζ (s, x, z)) y) r - g (y0 + r • (y - y0), ζ (r, y, z)) - r • deriv (fun s => g (y0 + s • (y - y0), ζ (s, y, z))) r) b := by
             rw [deriv_clm_apply _ (differentiableAt_const b), deriv_const, ContinuousLinearMap.map_zero, add_zero]
             · congr
@@ -206,6 +228,9 @@ lemma Lemma9b
               · have : DifferentiableAt ℝ ζ (r, y, z) := ζ_diff hr hy hz
                 fun_prop
             · sorry
+
+          -- Exchange partial derivatives.
+          --
           _ = (fderiv ℝ (fun x => deriv (ζ ⟨·, x, z⟩) r) y
             - g (y0 + r • (y - y0), ζ (r, y, z))
             - r • (fderiv ℝ g (y0 + r • (y-y0), ζ (r, y, z)) (deriv (fun s => (y0 + s • (y - y0), ζ (s, y, z))) r))) b := by
@@ -218,6 +243,8 @@ lemma Lemma9b
               · have : DifferentiableAt ℝ ζ (r, y, z) := ζ_diff hr hy hz
                 fun_prop
 
+          -- Simplify the 3rd term.
+          --
           _ = (fderiv ℝ (fun x => deriv (ζ ⟨·, x, z⟩) r) y
             - g (y0 + r • (y - y0), ζ (r, y, z))
             - r • fderiv ℝ g (y0 + r • (y-y0), ζ (r, y, z)) ((y - y0), deriv (ζ ⟨·, y, z⟩) r)) b := by
@@ -230,6 +257,8 @@ lemma Lemma9b
             · have : DifferentiableAt ℝ ζ (r,y,z) := ζ_diff hr hy hz
               fun_prop
 
+          -- Equation for ζ.
+          --
           _ = (fderiv ℝ (fun x => (g (y0 + r • (x - y0), ζ (r, x, z))) (x - y0)) y
             - g (y0 + r • (y - y0), ζ (r, y, z))
             - r • fderiv ℝ g (y0 + r • (y-y0), ζ (r, y, z)) ((y - y0), (g (y0 + r • (y - y0), ζ (r, y, z))) (y - y0))) b := by
@@ -241,6 +270,8 @@ lemma Lemma9b
             · congr
               exact (ζ_eq hr hy hz).deriv
 
+          -- Derivative of a linear map.
+          --
           _ = ((g (y0 + r • (y-y0), ζ (r,y,z)) + (fderiv ℝ (fun x => g (y0 + r • (x-y0), ζ (r,x,z))) y).flip (y-y0))
             - g (y0 + r • (y - y0), ζ (r, y, z))
             - r • fderiv ℝ g (y0 + r • (y-y0), ζ (r, y, z)) ((y - y0), (g (y0 + r • (y - y0), ζ (r, y, z))) (y - y0))) b := by
@@ -252,6 +283,8 @@ lemma Lemma9b
             · have : DifferentiableAt ℝ ζ (r, y, z) := ζ_diff hr hy hz
               fun_prop
 
+          -- Cancel the 1st term, expand total derivative into partials in the 4th term.
+          --
           _ = ((fderiv ℝ (fun x => g (y0 + r • (x-y0), ζ (r,x,z))) y).flip (y-y0)
             - r • (fderiv ℝ (fun x' => g (x', ζ (r, y, z))) (y0 + r • (y-y0)) (y-y0) + fderiv ℝ (fun z' => g (y0 + r • (y-y0), z')) (ζ (r, y, z)) ((g (y0 + r • (y - y0), ζ (r, y, z))) (y - y0)))) b := by
             congr
@@ -259,11 +292,15 @@ lemma Lemma9b
             · apply fderiv_partials
               fun_prop
 
+          -- Function application.
+          --
           _ = fderiv ℝ (fun x => g (y0 + r • (x-y0), ζ (r,x,z))) y b (y-y0)
             - r • (fderiv ℝ (fun x' => g (x', ζ (r, y, z))) (y0 + r • (y-y0)) (y-y0) + fderiv ℝ (fun z' => g (y0 + r • (y-y0), z')) (ζ (r, y, z)) ((g (y0 + r • (y - y0), ζ (r, y, z))) (y - y0))) b := by
             congr
 
 
+          -- Chain rule for the 1st term, distributivity and linearity for the 2nd term.
+          --
           _ = fderiv ℝ (fun x' => g (x', ζ (r,y,z))) (y0 + r • (y-y0)) b (r • (y-y0)) + (fderiv ℝ (fun z' => g (y0 + r • (y-y0), z')) (ζ (r,y,z))) (fderiv ℝ (fun x => ζ (r,x,z)) y b) (y-y0)
             - (fderiv ℝ (fun x' => g (x', ζ (r, y, z))) (y0 + r • (y-y0)) (r • (y-y0)) + fderiv ℝ (fun z' => g (y0 + r • (y-y0), z')) (ζ (r, y, z)) ((g (y0 + r • (y - y0), ζ (r, y, z))) (r • (y - y0)))) b := by
             congr
@@ -283,6 +320,8 @@ lemma Lemma9b
               fun_prop
             · rw [← ContinuousLinearMap.smul_apply, smul_add, ← map_smul, ← map_smul, ← map_smul]
 
+          -- The terms match the formula for curvature.
+          --
           _ = -(Curvature g (y0 + r • (y-y0), ζ (r,y,z)) (r • (y-y0)) b) + (fderiv ℝ (fun z' ↦ (g (y0 + r • (y - y0), z')) (y-y0)) (ζ (r, y, z))) ((η (r, y, z)) b) := by
             unfold Curvature
             unfold η
@@ -309,12 +348,16 @@ lemma Lemma9b
               abel
             · fun_prop
 
+          -- Curvature is zero.
+          --
           _ = (fderiv ℝ (fun z' ↦ (g (y0 + r • (y - y0), z')) (y-y0)) (ζ (r, y, z))) ((η (r, y, z)) b) := by
             unfold TotalFderivCompat at g_compat
             rw [g_compat (y0 + r • (y - y0), ζ (r, y, z)) _ (r • (y - y0)) b]
             · simp only [neg_zero, map_sub, zero_add]
             · sorry
 
+    -- η is differentiable.
+    --
     have η_diff : ∀ {r y z b}, r ∈ Set.Icc (-ε) (1+ε) → y ∈ sb → z ∈ sf → ∃ η', HasDerivAt (η ⟨·, y, z⟩ b) η' r
       := by
         intro r y z b hr hy hz
@@ -349,9 +392,11 @@ lemma Lemma9b
                 ContinuousLinearMap.coe_id', id_eq]
             _ = iteratedFDeriv ℝ 1 ζ (t, y, z) (fun _ => (0, b, 0)) - t • g (y0 + t • (y - y0), ζ (t, y, z)) b := sorry
         apply DifferentiableAt.sub
-        · apply ContDiffAt.differentiableAt_iteratedFDeriv -- TODO: workout on paper
+        · apply ContDiffAt.differentiableAt_iteratedFDeriv -- TODO: work out on paper
         · fun_prop
 
+    -- Put the above two results together.
+    --
     have η_ode : ∀ {t y z b}, t ∈ (Set.Icc (-ε) (1+ε)) → y ∈ sb → z ∈ sf → HasDerivAt (η ⟨·, y, z⟩ b) (fderiv ℝ (g ⟨y0 + t • (y-y0), ·⟩ y) (ζ (t, y, z)) (η (t, y, z) b)) t := by
       intro _ _ _ _ ht hy hz
       have ⟨η', hη'⟩ := η_diff ht hy hz
@@ -361,6 +406,8 @@ lemma Lemma9b
       rw [this] at hη'
       exact hη'
 
+    -- Initial condition.
+    --
     have η_init : ∀ {y z}, y ∈ sb → z ∈ sf → η (0, y, z) = 0 := by
       intro y z hy hz
       unfold η
@@ -370,6 +417,8 @@ lemma Lemma9b
 
     intro y hy z hz
 
+    -- Use `η_unique` to extract the differential equation in the 2nd argument of ζ.
+    --
     have : ∀ t ∈ Set.Icc (-ε) (1+ε), ∀ b, fderiv ℝ (fun y' ↦ ζ (t, y', z)) y b = t • g (y0 + t • (y - y0), ζ (t, y, z)) b := by
       intro t ht b
       have := η_unique hy0 hε ζ_init ζ_eq η_init η_ode y hy z hz b
