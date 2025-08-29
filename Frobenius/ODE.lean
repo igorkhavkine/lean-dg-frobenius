@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2025 Igor Khavkine. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Igor Khavkine
+-/
 import Mathlib.Analysis.Calculus.MeanValue
 import Mathlib.Analysis.ODE.PicardLindelof
 import Mathlib.Analysis.ODE.Gronwall
