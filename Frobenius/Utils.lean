@@ -32,11 +32,15 @@ section
 
 lemma subset_of_le {a b ε : ℝ} (hε : 0 < ε) : Set.Icc a b ⊆ Set.Ioo (a-ε) (b+ε) := sorry
 
+-- `f = g` and `f x = g x` implies `deriv f x = deriv g x`
+--
 theorem deriv_congr {𝕜 : Type*} [NontriviallyNormedField 𝕜] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   {f g : 𝕜 → F} {x : 𝕜} (h : ∀ y, f y = g y) (hx : f x = g x) : deriv f x = deriv g x := by
   repeat rw [← derivWithin_univ]
   apply derivWithin_congr ((Set.eqOn_univ f g).mpr (funext h)) hx
 
+-- chain rule for `f : 𝕜 → F` and `g : F → E`
+--
 theorem fderiv_comp'_deriv {𝕜 F E : Type*} [NontriviallyNormedField 𝕜]
       [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
       {g : F → E} {f : 𝕜 → F} {x : 𝕜}
@@ -48,6 +52,8 @@ theorem fderiv_comp'_deriv {𝕜 F E : Type*} [NontriviallyNormedField 𝕜]
       rfl
     rw [deriv_congr this rfl, fderiv_comp_deriv x hg hf]
 
+-- continuous function on a compact set has a non-negative bound
+--
 theorem exists_nonneg_bound_of_continuousOn {α : Type*} {E : Type*} [SeminormedAddGroup E]
     [TopologicalSpace α] {s : Set α} (hs : IsCompact s) {f : α → E} (hf : ContinuousOn f s)
     : ∃ C : NNReal, ∀ x ∈ s, ‖f x‖ ≤ C := by
@@ -59,6 +65,8 @@ theorem exists_nonneg_bound_of_continuousOn {α : Type*} {E : Type*} [Seminormed
     exact le_abs_self C
   exact (h x hx).trans this
 
+-- differentiability of the function `x ↦ fderiv 𝕜 (f x) (g x)` on a set
+--
 theorem contDiffWithinAt_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
     [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
     {f : E → F → G} {g : E → F} {m n : WithTop ℕ∞} {x₀ : E} {s : Set E} (hx₀ : x₀ ∈ s)
@@ -69,11 +77,15 @@ theorem contDiffWithinAt_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [Nor
     hmn hx₀ ?_)
   simp only [Set.preimage_univ, Set.subset_univ]
 
+-- extensionality for `ContDiffOn`
+--
 theorem contDiffOn_iff_contDiffWithinAt {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*}
     [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
     {f : E → F} {n : WithTop ℕ∞} {s : Set E}
     : ContDiffOn 𝕜 n f s ↔ ∀ x ∈ s, ContDiffWithinAt 𝕜 n f s x := sorry
 
+-- differentiability of the function `x ↦ fderiv 𝕜 (f x) (g x)`
+--
 theorem contDiffOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
     [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
     {f : E → F → G} {g : E → F} {m n : WithTop ℕ∞} {s : Set E}
@@ -85,6 +97,9 @@ theorem contDiffOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAdd
     apply contDiffWithinAt_fderiv hx (hf.contDiffWithinAt hx') (hg.contDiffWithinAt hx) hnm
   exact contDiffOn_iff_contDiffWithinAt.mpr this
 
+-- continuity of partial derivative
+--
+@[fun_prop]
 theorem continuousOn_fderiv {𝕜 E F G} [NontriviallyNormedField 𝕜] [NormedAddCommGroup E] [NormedSpace 𝕜 E]
     [NormedAddCommGroup F] [NormedSpace 𝕜 F] [NormedAddCommGroup G] [NormedSpace 𝕜 G]
     {f : E × F → G} {g : E → F} {n : WithTop ℕ∞} {s : Set E}
@@ -98,6 +113,8 @@ section Partials
 
 -- PR #25304
 
+-- total derivative as a sum of partial derivatives (on a set)
+--
 theorem fderivWithin_partials
   {𝕜 : Type*} [NontriviallyNormedField 𝕜] [IsRCLikeNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
@@ -133,6 +150,8 @@ theorem fderivWithin_partials
       exact ⟨hx', hy⟩
 
 
+-- total derivative as a sum of partial derivatives
+--
 theorem fderiv_partials
   {𝕜 : Type*} [NontriviallyNormedField 𝕜] [IsRCLikeNormedField 𝕜]
   {E : Type*} [NormedAddCommGroup E] [NormedSpace 𝕜 E]
@@ -196,10 +215,10 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E
 
 -- NOTE: Uses a different `IsPicardLindelof` structure than the PR.
 --
-theorem exists_forall_mem_closedBall_eq_hasDerivWithinAt_continuousOn
-    (hf : IsPicardLindelof f tmin t₀ tmax x₀ K a L) :
-    ∃ α : E × ℝ → E, (∀ x ∈ Metric.closedBall x₀ r, α ⟨x, t₀⟩ = x ∧
-      ∀ t ∈ Set.Icc tmin tmax, HasDerivWithinAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) (Set.Icc tmin tmax) t) ∧
-      ContinuousOn α (Metric.closedBall x₀ r ×ˢ Set.Icc tmin tmax) := by sorry
+-- theorem exists_forall_mem_closedBall_eq_hasDerivWithinAt_continuousOn
+--     (hf : IsPicardLindelof f tmin t₀ tmax x₀ K a L) :
+--     ∃ α : E × ℝ → E, (∀ x ∈ Metric.closedBall x₀ r, α ⟨x, t₀⟩ = x ∧
+--       ∀ t ∈ Set.Icc tmin tmax, HasDerivWithinAt (α ⟨x, ·⟩) (f t (α ⟨x, t⟩)) (Set.Icc tmin tmax) t) ∧
+--       ContinuousOn α (Metric.closedBall x₀ r ×ˢ Set.Icc tmin tmax) := by sorry
 
 end PicardLindelof
