@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2025 Jan Růžička. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jan Růžička, Igor Khavkine
+-/
 import Mathlib
 
 section

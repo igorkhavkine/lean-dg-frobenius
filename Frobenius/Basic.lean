@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2025 Igor Khavkine. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Igor Khavkine, Jan Růžička
+-/
 import Mathlib
 import Mathlib.Analysis.Calculus.FDeriv.Prod
 import Mathlib.Topology.ContinuousMap.Bounded.Basic
